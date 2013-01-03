@@ -10,26 +10,36 @@ module dragon(width = 50, length = 300, wingspan = 300, tubeDiam = 8, tendonDiam
     spacing = 10;
     
     
-    // Body
-    bodyLength = length * 0.3;        
-    translate([-width/2,0,0]) {
-        body(width, bodyLength);
-    } 
-
-    // Neck
-    neckWidth = width * 0.55;
-    neckLength = length * 0.4;
-    neckSegments = 4;
-    translate([0, bodyLength + spacing, 0]) {
-        neck(neckWidth, neckLength, tubeDiam, tendonDiam, neckSegments, spacing);
-    }
-
     // Head
-    headWidth = width * 0.5;
-    headLength = length * 0.15;
-    translate([-headWidth/2, bodyLength + spacing + neckLength + spacing*neckSegments, 0]) {
+    headWidth = width * 0.8;
+    headLength = length * 0.2;
+    translate([-headWidth/2, bodyLength/2 + spacing + neckLength + spacing*neckSegments, 0]) {
         head(headWidth, headLength);
     }
+    
+    // Neck
+    neckWidth = width * 0.6;
+    neckLength = length * 0.4;
+    neckSegments = 4;
+    translate([0, bodyLength/2 + spacing, 0]) {
+        spine(neckWidth, neckLength, tubeDiam, tendonDiam, neckSegments, spacing);
+    }
+
+    // Body
+    bodyWidth = width*1.5;
+    bodyLength = length * 0.4;        
+    translate([-bodyWidth/2,-bodyLength/2,0]) {
+        body(bodyWidth, bodyLength);
+    } 
+
+    // Tail
+    tailWidth = width * 0.5;
+    tailLength = length * 0.5;
+    tailSegments = 5;
+    translate([0, -tailLength - spacing*tailSegments-bodyLength/2, 0]) {
+        spine(tailWidth, tailLength, tubeDiam, tendonDiam, tailSegments, spacing);
+    }
+
 }
 
 
@@ -43,15 +53,17 @@ module body(width, length) {
     
 }
 
-module neck(width, length, tubeDiam, tendonDiam, neckSegments, spacing) {
+module spine(width, length, tubeDiam, tendonDiam, neckSegments, spacing) {
     segmentLength = length / neckSegments;
     for (segment = [1 : neckSegments]) {
-        translate([0, (segment - 1) * (segmentLength+spacing), width/2]) {
-            rotate([270, 0,0])
+        translate([0, segmentLength + (segment - 1) * (segmentLength+spacing), width/2]) {
+            rotate([90, 0,0])
                 neckSegment(width, segmentLength, tubeDiam, tendonDiam);
         }
     }
 }
+
+
 
 module neckSegment(width, length, tubeDiam, tendonDiam, bendAmount = 0.25, supportSpacing = 0.75) {
     ribSpacing = width * supportSpacing;
