@@ -1,3 +1,4 @@
+$fn = 40;
 
 holeMargin = 1;
 
@@ -16,7 +17,7 @@ module dragon(width = 50, length = 300, wingspan = 300, tubeDiam = 8, tendonDiam
     } 
 
     // Neck
-    neckWidth = width * 0.5;
+    neckWidth = width * 0.55;
     neckLength = length * 0.4;
     neckSegments = 4;
     translate([0, bodyLength + spacing, 0]) {
@@ -52,18 +53,20 @@ module neck(width, length, tubeDiam, tendonDiam, neckSegments, spacing) {
     }
 }
 
-module neckSegment(width, length, tubeDiam, tendonDiam, bendAmount = 0.25) {
-    ribSpacing = width * 0.75;
+module neckSegment(width, length, tubeDiam, tendonDiam, bendAmount = 0.25, supportSpacing = 0.75) {
+    ribSpacing = width * supportSpacing;
     ribCount = max(1, floor(length / ribSpacing));
     height = width * 0.8;   
     radius = width / 2;
     //endL = length * 0.1;
     tr = (radius - tendonDiam/2) - holeMargin;    
-    ribThickness = width * 0.1;
+    tr2 = (tubeDiam / 2.0) + holeMargin + tendonDiam/2;    
+    ribThickness = max(tendonDiam/2 + 2*holeMargin, width * 0.1);
     ribIntervall = (length-ribThickness*2) / ribCount;
     ribHoleSize = 0.5;
     bumpWidth = tubeDiam + 2 * holeMargin;
     bumpLen = (width - bumpWidth) * bendAmount;    
+    crossTendonDistance = holeMargin + tendonDiam/2;
 
     difference() {
         union() {
@@ -96,13 +99,24 @@ module neckSegment(width, length, tubeDiam, tendonDiam, bendAmount = 0.25) {
             cylinder(r=tubeDiam/2, h=length + bumpLen + 2);       
         
         // Holes for tendons along each edge    
-        for (pos = [[-tr,   0, -1], 
-                    [ tr,   0, -1], 
-                    [  0, -tr, -1], 
-                    [  0,  tr, -1]])
-            translate(pos)
-                cylinder(r=tendonDiam/2, h=length+2);       
+        cylinderCircle(tendonDiam, length, tr);
                 
+    	// Extra holes for forward tendons
+        cylinderCircle(tendonDiam, length, tr2);        
+                
+    	// Still some more extra holes for transfered tendons
+        cylinderCircle(tendonDiam, length, tr2, startAngle=45);
+
+        // Some extra holes in case we want e.g. twist
+        cylinderCircle(tendonDiam, length, tr, startAngle=45);
+                
+    	// Sideways tendon holes for knots or transfers
+    	for (z = [crossTendonDistance, length - crossTendonDistance], a = [0, 45, 90, 90+45])
+        	translate([0,0,z])
+        	    rotate([0,270,a])    	
+        	    	cylinder(r=tendonDiam/2, h=width*2, center=true);       
+		
+
         // Remove some excess material
         for (ribZ = [ribThickness+ribIntervall/2 : ribIntervall : length - ribThickness - ribIntervall/2 + 0.1], zAngle=[45, 45+90])
             translate([0,0,ribZ]) {
@@ -111,6 +125,16 @@ module neckSegment(width, length, tubeDiam, tendonDiam, bendAmount = 0.25) {
             }
 
                 
+    }
+}
+
+module cylinderCircle(diameter, length, centerDistance, angleNum=4, startAngle = 0, extend = 1) {
+    angleStep = 360.0 / angleNum;
+
+    for (ai = [0 : angleNum - 1]) {
+        rotate([0,0,startAngle + angleStep * ai])
+            translate([centerDistance, 0, -extend])
+                cylinder(r = diameter/2, h = length + extend*2);
     }
 }
 
