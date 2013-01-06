@@ -5,14 +5,9 @@ $fn = 40;
 holeMargin = 1;
 
 
-w = 70;
-d = 50;
-l = 40;
-startScale = 2;
-endScale = 0.5;
-neckSegment(w, d, l, 10.3, 4);
+//testSpine(xNum=2, yNum=2);
 
-//dragon();
+dragon();
 
 
 // Slice outline for a neck / spine piece.
@@ -30,53 +25,100 @@ spineProfileScaleY = 1.0/32.0;
 spineProfileLen = 46; // Works in later openscad versions only? len(spineProfile);
 
 
-
-module dragon(width = 50, length = 300, wingspan = 300, tubeDiam = 8, tendonDiam = 3) {
+// Test setup for spines
+module testSpine(xNum = 3, yNum = 3, step = 10, startSize = 20) {    
+    spacing = max(xNum,yNum)*step*1.8+startSize+10;
+    w = xNum*spacing;
+    h = yNum*spacing;
     
-    spacing = 10;
+    for (x = [0 : xNum-1], y = [0 : yNum-1])
+        translate([(x-(xNum-1)/2)*spacing, (y-(yNum-1)/2) * spacing, 0]) {
+            neckSegment(x*step + startSize, 
+                        y*step + startSize, 
+                        (x+y) * 0.5 *step + startSize, 
+                        10.3, 
+                        3);
+                        
+            translate([0,0,(x+y) * 0.5 *step + startSize])
+                neckSegment(x*step + startSize, 
+                            y*step + startSize, 
+                            (x+y) * 0.5 *step + startSize, 
+                            10.3, 
+                            3);
+        }
+}
+
+
+module dragon(width = 100, length = 700, wingspan = 500, tubeDiam = 8, tendonDiam = 3) {
+    
+    spacing = 0;
     
     
     // Head
-    headWidth = width * 0.8;
-    headLength = length * 0.2;
+    headWidth = width * 0.6;
+    headLength = length * 0.125;
     translate([-headWidth/2, bodyLength/2 + spacing + neckLength + spacing*neckSegments, 0]) {
-        head(headWidth, headLength);
+        head(headWidth, headWidth*0.7, headLength);
     }
     
     // Neck
-    neckWidth = width * 0.6;
-    neckLength = length * 0.4;
+    neckWidth = width * 0.3;
+    neckLength = length * 0.2;
     neckSegments = 4;
     translate([0, bodyLength/2 + spacing, 0]) {
-        spine(neckWidth, neckLength, tubeDiam, tendonDiam, neckSegments, spacing);
+        spine(neckWidth*1.1, neckWidth, neckLength, 1.2, 0.8, tubeDiam, tendonDiam, neckSegments, spacing, startSpikeSize=1, startSpikeAngle=28, endSpikeSize=0.9, endSpikeAngle=26);
     }
+    
     // Body
-    bodyWidth = width*1.5;
-    bodyLength = length * 0.4;        
-    translate([-bodyWidth/2,-bodyLength/2,0]) {
-        body(bodyWidth, bodyLength);
+    bodyWidth = width*1;
+    bodyLength = length * 0.175;        
+    translate([0,-bodyLength/2,0]) {
+        body(bodyWidth, bodyLength, wingspan);
     } 
+    
     // Tail
-    tailWidth = width * 0.5;
+    tailWidth = width * 0.25;
     tailLength = length * 0.5;
-    tailSegments = 5;
+    tailSegments = 8;
     translate([0, -tailLength - spacing*tailSegments-bodyLength/2, 0]) {
-        spine(tailWidth, tailLength, tubeDiam, tendonDiam, tailSegments, spacing);
+        spine(tailWidth*1.2, tailWidth, tailLength, 0.6, 1.2, tubeDiam, tendonDiam, tailSegments, spacing, startSpikeSize=0.5, startSpikeAngle=30);
     }
 }
-module body(width, length) {
+
+
+module body(width, length, wingspan) {
     
     height = width * 0.5;
-    cube([width,length,height]);
     
+    wingBoneSize = 10;
+
+    translate([-width/2,0,0])    
+        cube([width,length,height]);
+    
+    translate([width/2, 0, height/2])
+        wing((wingspan-width)/2, length, wingBoneSize);    
+    translate([-width/2, 0, height/2])
+        scale([-1, 1, 1])
+            wing((wingspan-width)/2, length, wingBoneSize);    
     
 }
-module spine(width, length, tubeDiam, tendonDiam, neckSegments, spacing) {
+
+module wing(span, width, wingBoneSize) {
+    cube([span,width,wingBoneSize]);
+}
+
+module spine(width, height, length, startSize, endSize, tubeDiam, tendonDiam, neckSegments, spacing, startSpikeSize=1, endSpikeSize=1, startSpikeAngle=28, endSpikeAngle=28) {
     segmentLength = length / neckSegments;
     for (segment = [1 : neckSegments]) {
         translate([0, segmentLength + (segment - 1) * (segmentLength+spacing), width/2]) {
             rotate([90, 0,0])
-                neckSegment(width, width, segmentLength, tubeDiam, tendonDiam);
+                neckSegment(width * mix(segment/neckSegments, startSize, endSize), 
+                            height * mix(segment/neckSegments, startSize, endSize), 
+                            segmentLength, 
+                            tubeDiam, 
+                            tendonDiam,
+                            spikeSize=mix(segment/neckSegments, startSpikeSize, endSpikeSize),
+                            spikeAngle=mix(segment/neckSegments, startSpikeAngle, endSpikeAngle));
         }
     }
 }
@@ -85,20 +127,18 @@ function mix(pos, start, end) = start + pos * (end -start);
 
 function profileScale(relativePos, scale, startScale, endScale) = mix(relativePos, startScale, endScale) * scale * (spineProfile[spineProfileLen - 1 - relativePos * (spineProfileLen - 1)][0]);
 
-module neckSegment(sizeX, sizeY, length, tubeDiam, tendonDiam, bendAmount = 0.25, supportSpacing = 0.75) {
+module neckSegment(sizeX, sizeY, length, tubeDiam, tendonDiam, spikeSize = 1, spikeAngle = 40, bendAmount = 0.3, supportSpacing = 0.75) {
     tendonX = (sizeX/2 - tendonDiam/2) - holeMargin;    
     tendonY = (sizeY/2 - tendonDiam/2) - holeMargin;    
     sliceCount = spineProfileLen; 
     sliceH = length / sliceCount;
 
     
-    extraScale = 1.5;
-    
     depressionRelativePos = 0.5;
     depressionDepth = length * depressionRelativePos;
     bumpHeight = 0.5 * max(sizeX, sizeY) * bendAmount;
 
-    connectorLength = depressionDepth;
+    connectorLength = depressionDepth*0.5;
     
     //bumpWidth = tubeDiam;// + 2 * holeMargin*2;
     //bumpLen = (width - bumpWidth) * bendAmount;    
@@ -108,26 +148,22 @@ module neckSegment(sizeX, sizeY, length, tubeDiam, tendonDiam, bendAmount = 0.25
             // Basic body
             difference() {
                 translate([0,0,connectorLength])
-                    carvedSegment(sizeX, sizeY, length, extraScale);
-
-                // Next body
-                translate([0,0,connectorLength + length * 0.6])
-                    carvedSegment(sizeX, sizeY, length, extraScale);
+                    carvedSegment(sizeX, sizeY, length, spikeSize, spikeAngle = spikeAngle);
 
                 // Depression for connecting to the previous segment
-                translate([0,0,connectorLength + length-depressionDepth])
+                translate([0,0,length - bumpHeight])
                     scale([sizeX, sizeY, 1])
-                        cylinder(r1=0.5, r2= 0.5 + bendAmount * depressionRelativePos, h=depressionDepth);       
+                        cylinder(r1=0.5, r2= 0.6 + bendAmount * depressionRelativePos, h=depressionDepth+bumpHeight);       
             }
         
             // Bump to pivot previous segment on
-            translate([0,0,connectorLength + length - depressionDepth])
+            translate([0,0,length - bumpHeight])
                 scale([sizeX, sizeY, 1])
                     cylinder(r1=0.5, r2=0, h=bumpHeight);       
 
             // Socket to connect to next segment
             translate([0,0,0])
-                scale([sizeX, sizeY, connectorLength + length - depressionDepth])
+                scale([sizeX, sizeY, length - bumpHeight])
                     cylinder(r=0.5, h=1);       
         }
 
@@ -150,62 +186,113 @@ function polarR(a, x, y) = sqrt(pow(sin(a) * y * 0.5, 2) + pow(cos(a) * x * 0.5,
 module carvedSegment(origX, 
                      origY, 
                      sizeZ, 
-                     padding, 
-                     carvingCount = 4*2, 
-                     distanceFactor = 3, 
+                     spikeSize = 1,
+                     spikeAngle = 28,
+                     padding = 1.7, 
                      bottomCarveDepth = 0.4, 
                      bumpCount = 1) {
 
-    carveAreaAngle = 360.0;
+    extraSideCarveAngle = 15;
+    carveAreaAngle = 180.0+extraSideCarveAngle*2;
                      
-    carveStep = carveAreaAngle / carvingCount;
-
     carvePadding = padding * 5;
     carveDepth = 1.0 - 1.0 / carvePadding;
     
 
-    sizeFactor = carveDepth + (distanceFactor-1);
-    
-    sizeX = origX * padding;
-    sizeY = origY * padding;
+    maxSizeX = origX * padding;
+    maxSizeY = origY * padding;
     
     cutSharpness = 5;
     cutLength = 7;
     cutOffset = -6;
+
+    spikeRootSize = 0.4;
+
     
-    bottomCutAspect = sizeX * 0.8 / sizeY;
-    bottomCutBroadness = 1.6;    
-    bottomCutRadius = 0.5 * bottomCutBroadness * max(sizeX, sizeY);
-    bottomCutDist = bottomCutRadius - bottomCarveDepth * sizeZ;
+    bottomCutAspect = 1.1;
+    bottomCutRadius = 0.9;
+    bottomCutDist = sizeZ * 1.45;
 
     difference() {
-        scale([sizeX, sizeY, sizeZ])
-            translate([0,0,-0.2])
-                cylinder(r=1, h=1.4);
-        //sphere(r = sizeX/2);
+        union() {       
+            scale([origX, origY, sizeZ]) {
+                translate([0,0,-0.2])
+                    cylinder(r1=0.5, r2=padding/2*0.65, h=0.25);
+                translate([0,0,-0.1])
+                    cylinder(r1=0.5, r2=padding/2*0.74, h=0.25);
+                translate([0,0,1])
+                    scale([1,1,1.5])
+                        sphere(r=padding/2);
 
-        // Carve backside        
-        for (ca = [carveStep*0.5 : carveStep : carveAreaAngle + 0.01 - carveStep*0.5]) {
-            rotate([0,0,ca+90]) {
-                translate([polarR(ca, sizeX, sizeY) * distanceFactor, 0, cutOffset * sizeZ]) {
-                    translate([(cutSharpness-1.0) * sizeFactor * polarR(ca, sizeX, sizeY), 0, 0])
-                        rotate([0,0,0])
-                            scale([cutSharpness, 1, cutLength]) {
-                                sphere(r = sizeFactor * polarR(ca, sizeX, sizeY), $fn = 60);
-                                //%sphere(r = sizeFactor * polarR(ca, sizeX, sizeY));
-                            }
-                }
+                // Spike
+                translate([0,0.5,0.6])
+                    scale([spikeSize, spikeSize, spikeSize])
+                        rotate([270+spikeAngle,0,0])
+                            cylinder(r1 = spikeRootSize, r2 = 0.05, h=1);
             }
+
+        }
+
+        scale([origX, origY, sizeZ]) {
+            // Cut behind spike
+            translate([0,0.5,1.2])
+                scale([spikeSize, spikeSize, spikeSize])
+                    rotate([270,0,0])
+                        cylinder(r1 = spikeRootSize, r2 = 0.05, h=1);
+
+            // Carve sides
+            sideCarver(padding-0.35, 
+                       cutRadiusFactor = 0.85, 
+                       cutRootScale = 0.05,
+                       cutAngle=25,
+                       carveStartAngle = -extraSideCarveAngle, 
+                       carvingCount=4,
+                       carveAreaAngle = carveAreaAngle);
+
+            sideCarver(padding-0.04, 
+                       cutRadiusFactor = 1.20, 
+                       cutAngle=24,
+                       cutSharpness = 1,
+                       cutRootScale=0.75, 
+                       carveStartAngle = -extraSideCarveAngle, 
+                       carvingCount=2,
+                       carveAreaAngle = carveAreaAngle);
         }
         
         // Carve bottom
-        translate([0,0,sizeZ+bottomCutDist])
-            scale([bottomCutAspect, 1.0/bottomCutAspect, 1])
+        translate([0,0,bottomCutDist])
+            scale([origX*bottomCutAspect, origY/bottomCutAspect, sizeZ])
                 sphere(r=bottomCutRadius, $fn=50);
+        translate([0,0,bottomCutDist*1.35])
+            scale([origX*bottomCutAspect*1.4, origY/bottomCutAspect*1.4, sizeZ])
+                rotate([0,90,0])
+                    cylinder(r=1, h=2, center=true, $fn=50);
     }
 
 }
 
+
+module sideCarver(cutDistanceFactor, 
+                  cutRadiusFactor = 0.9, 
+                  cutAngle = 25, 
+                  cutRootScale = 0.1, 
+                  cutSharpness = 1.5,
+                  carveStartAngle = 90,
+                  carveAreaAngle = 360.0,
+                  carvingCount = 8) {
+                  
+    carveStep = carveAreaAngle / carvingCount;
+    
+    for (ca = [carveStep*0.5 : carveStep : carveAreaAngle + 0.01 - carveStep*0.5]) {
+        rotate([0,0,ca + carveStartAngle]) {
+            translate([cutDistanceFactor, 0, 0]) {
+                rotate([0, cutAngle, 0])
+                    scale([cutSharpness, 1/cutSharpness, 1]) 
+                        cylinder(r1=cutRootScale*cutRadiusFactor, r2=cutRadiusFactor, h=2, center=true, $fn=50);                    
+            }
+        }
+    }
+}
 
 module cylinderCircle(diameter, length, centerDistance, angleNum=4, startAngle = 0, extend = 1) {
     angleStep = 360.0 / angleNum;
@@ -224,9 +311,8 @@ module rib(radius, thickness) {
     cylinder(r=radius, h=thickness);
 }
 
-module head(headWidth, headLength) {
-    headHeight = headWidth * 0.5;
-    cube([headWidth,headLength,headHeight]);
+module head(headWidth, headHeight, headLength) {
+    cube([headWidth, headLength, headHeight]);
 }
 
 // A box rounded along the ground plane only, with rounding equal to the size of the smallest side
