@@ -2,27 +2,19 @@
 
 $fn = 20;
 
+Tau = 6.28318530717958647692;
+
 holeMargin = 1;
 
 
-//testSpine(xNum=2, yNum=2);
+testSpine(xNum=1, yNum=1);
 
-dragon();
+//dragon();
 
+//neckSegment();
 
-// Slice outline for a neck / spine piece.
-// Use a polygon editor to define this, e.g. http://daid.mine.nu/~daid/3d/
-spineOutline = [[0,18],[1,16],[5,13],[10,11],[14,12],[13,9],[14,5],[16,2],[18,0],[16,-1],[14,-5],[12,-11],[11,-12],[6,-15],[0,-16],[-6,-15],[-11,-12],[-12,-11],[-14,-5],[-16,-1],[-18,0],[-16,2],[-14,5],[-13,9],[-14,12],[-10,11],[-5,13],[-1,16]];
-spineScaleX = 1.0/32.0;
-spineScaleZ = 1.0/32.0;
+//dragonScaleSection();
 
-
-// Profile for a neck / spline segment
-// Small: spineProfile = [[15,32],[16,31],[16,30],[15,28],[14,23],[14,21],[15,21],[15,19],[13,16],[12,13],[12,11],[13,11],[13,9],[11,6],[10,2],[10,0]];
-spineProfile = [[13,32/*1:0,0,0,0*/] ,[14,31.88] ,[14.88,31.39],[15,31/*1:0,1,1,-3*/] ,[15.13,29.95] ,[14.98,28.9] ,[14.69,27.92] ,[14.32,26.93] ,[13.95,25.96] ,[13.61,24.93] ,[13.43,23.9] ,[13.63,22.89] ,[14.37,22.22],[15,22/*1:-4,1,-1,-6*/] ,[14.79,20.95] ,[14.53,19.97] ,[14.17,18.89] ,[13.79,17.89] ,[13.39,16.97] ,[12.95,16] ,[12.5,15] ,[12.12,14.01] ,[11.91,12.96] ,[12.09,11.97] ,[12.75,11.18],[13,11/*1:-3,2,-1,-5*/] ,[12.78,10.01] ,[12.49,8.99] ,[12.15,7.98] ,[11.75,6.97] ,[11.35,6.04] ,[10.94,5.05] ,[10.58,4.03] ,[10.3,3.02] ,[10.12,2.01] ,[10.03,0.99],[10,0/*1:0,5,-4,0*/] ,[8.88,0] ,[7.83,0] ,[6.75,0] ,[5.67,0] ,[4.62,0] ,[3.62,0] ,[2.58,0] ,[1.58,0] ,[0.54,0]];
-spineProfileScaleX = 0.5*1.0/15.0;
-spineProfileScaleY = 1.0/32.0;
-spineProfileLen = 46; // Works in later openscad versions only? len(spineProfile);
 
 
 // Test setup for spines
@@ -39,12 +31,14 @@ module testSpine(xNum = 3, yNum = 3, step = 10, startSize = 20) {
                         10.3, 
                         3);
                         
+                        /*
             translate([0,0,(x+y) * 0.5 *step + startSize])
                 neckSegment(x*step + startSize, 
                             y*step + startSize, 
                             (x+y) * 0.5 *step + startSize, 
                             10.3, 
                             3);
+                            */
         }
 }
 
@@ -124,8 +118,8 @@ module spine(width, height, length, startSize, endSize, tubeDiam, tendonDiam, ne
 }
 
 function mix(pos, start, end) = start + pos * (end -start);
+function map(pos, srcStart, srcEnd, start, end) = start + ((pos-srcStart) / (srcEnd-srcStart)) * (end -start);
 
-function profileScale(relativePos, scale, startScale, endScale) = mix(relativePos, startScale, endScale) * scale * (spineProfile[spineProfileLen - 1 - relativePos * (spineProfileLen - 1)][0]);
 
 module neckSegment(sizeX, sizeY, length, tubeDiam, tendonDiam, spikeSize = 1, spikeAngle = 40, bendAmount = 0.3, supportSpacing = 0.75) {
     tendonX = (sizeX/2 - tendonDiam/2) - holeMargin;    
@@ -213,9 +207,16 @@ module carvedSegment(origX,
     bottomCutRadius = 1;
     bottomCutDist = sizeZ * 1.545;
 
+    scale([origX, origY, sizeZ]) {
+        // Back scales
+        translate([0,0,0.0])
+            dragonScaleSection(radius=0.75, scaleSize = 0.5, scalePointiness=1, scaleThickness = 1.2, rowPeriodAmplitude = 0.2);
+    }
+
     difference() {
         union() {       
             scale([origX, origY, sizeZ]) {
+                // Add basic shape
                 translate([0,0,-0.2])
                     cylinder(r1=0.5, r2=padding/2*0.65, h=0.25);
                 translate([0,0,-0.1])
@@ -223,6 +224,8 @@ module carvedSegment(origX,
                 translate([0,0,1])
                     scale([1,1,1.5])
                         sphere(r=padding/2);
+
+
 
                 // Spike
                 translate([0,0.5,0.6])
@@ -233,13 +236,15 @@ module carvedSegment(origX,
 
         }
 
-        scale([origX, origY, sizeZ]) {
+ //       scale([origX, origY, sizeZ]) {
+/*        
             // Cut behind spike
             translate([0,0.5,1.2])
                 scale([spikeSize, spikeSize, spikeSize])
                     rotate([270,0,0])
                         cylinder(r1 = spikeRootSize, r2 = 0.05, h=1);
-
+*/
+/*
             // Carve sides
             sideCarver(padding-0.35, 
                        cutRadiusFactor = 0.85, 
@@ -257,7 +262,8 @@ module carvedSegment(origX,
                        carveStartAngle = -extraSideCarveAngle, 
                        carvingCount=2,
                        carveAreaAngle = carveAreaAngle);
-        }
+*/                       
+  //      }
         
         // Carve bottom
         translate([0,0,bottomCutDist])
@@ -344,4 +350,150 @@ module stretchedCylinder(width, depth, height, centerHeight=false) {
     }
     
 }
+
+
+// Creates an arched section with rows of overlapping scales
+module dragonScaleSection(radius = 0.5,  // Radius, in mm.
+                          height = 1, // Height, in mm.
+                          scaledArc = 180, // How large part of the full circle to cover in scales
+                          arcStart = 270,  // Start angle for scaled part of circle
+                          tiltStart = 35, // Tilt angle of scales at base
+                          tiltEnd = 10,   // Tilt angle of scales at top
+                          scaleSize = 0.5, // Base size of scales, roughly in mm.
+                          scalePointiness = 1,  // 1 = normal, 2 = long and pointy, 0.5 = short and stubby
+                          scaleThickness = 1, // 1 = normal, 2 = thick, 0.5 = slender
+                          seed = 23142, 
+                          offsetAmount=0.15, 
+                          offsetPeriod = 1, 
+                          rowPeriodStart = -90, 
+                          rowPeriodEnd = 140, 
+                          rowPeriodAmplitude=0.15) {
+    
+    // Determine scale dimensions
+    scaleW = scaleSize;
+    scaleL = scaleSize * scalePointiness; 
+    scaleH = 0.3 * scaleSize * scaleThickness; 
+
+    rowPackingDensity = 1.5;
+    
+    rowCount = floor((height / scaleL) * rowPackingDensity);
+    rowHeight = height / rowCount;
+    
+    
+    for (i = [0 : rowCount-1]) {
+        translate([0,0,i * rowHeight])
+            dragonScaleArc(radius + radius*rowPeriodAmplitude*sin(map(i, 0, rowCount-1, rowPeriodStart, rowPeriodEnd)), 
+                           scaledArc, 
+                           arcStart, 
+                           map(i, 0, rowCount-1, tiltStart, tiltEnd), 
+                           scaleW, 
+                           scaleL, 
+                           scaleH, 
+                           i == rowCount-1, 
+                           1253 + seed + i * 13, 
+                           (i % 2) == 0, 
+                           height * offsetAmount, 
+                           offsetPeriod) ;
+    }
+
+}
+
+// Creates an arched row of overlapping scales
+module dragonScaleArc(radius = 25, scaledArc = 180, arcStart = 0, tilt = 10, scaleW = 20, scaleL = 20, scaleH = 10, carvedScale=true, seed = 23142, offsetRow = false, offsetAmount=0.2, offsetPeriod = 2) {
+    // Length in millimeter of the arc that should be covered in scales
+    arcLen = radius * Tau * (scaledArc/360);
+
+    // This is a fudge factor, needs to be adjusted depending on relation between scaleW and scaleH.
+    approxScaleW = scaleW * 0.5;
+
+    // How much the scales should overlap, 1 = no overlap (if approxScaleW is tuned correctly), 1.5 = 50% overlap.
+    packDensity = 1.2;
+
+    // Calculate number of scales to place
+    scaleNum = floor((arcLen / approxScaleW) * packDensity - (offsetRow ? 1 : 0));
+    
+    // An offset in scale placement, so that we can have the next row of scales between the previous scales.  Used if offsetRow is true.
+    offsetArcAdjust = (scaledArc / (scaleNum + 1)) / 2;
+
+    // How much to scale each scale randomly (1 = 100% differences)
+    randomScalingAmount = 0.4;
+    
+    // How many degrees that scales can be tilted randomly
+    randomTiltAmount = 7;
+    
+    // How much the scales can be offset forward or back (1 = scale length amount)
+    randomOffsetAmount = 0.1;
+
+    // Calculate random numbers    
+    randomScaling = rands(1-randomScalingAmount/2,1+randomScalingAmount/2,scaleNum,seed);
+    randomTilt = rands(-randomTiltAmount/2,randomTiltAmount/2,scaleNum,seed+1);
+    randomOffset = rands(0,randomOffsetAmount,scaleNum,seed+2);
+    
+    // Place scales
+    for (i = [0 : scaleNum-1] ) {
+        // Rotate to the correct angle from center to place this scale
+        rotate([0,0,map(i, 0, scaleNum-1, arcStart + (offsetRow ? offsetArcAdjust : 0), arcStart + scaledArc - (offsetRow ? offsetArcAdjust : 0))]) {
+            // Offset outwards from center for the scale, and up/down
+            translate([0, radius, scaleL * randomOffset[i] + sin(90+offsetPeriod * 360 * i / (scaleNum-1)) * offsetAmount])
+                // Tilt scale inwards or outwards
+                rotate([-tilt + randomTilt[i], 0, 0])
+                    // Create the scale with some calculated size
+                    dragonScale(scaleW, 
+                                scaleH * randomScaling[i], 
+                                scaleL * randomScaling[i], 
+                                carvedScale);
+        }
+    }
+
+}
+
+module dragonScale(w = 2, h = 0.8, l = 2, carved=true, ridgeAngle=30) {
+    if (carved) {
+        // If the scale is carved, we make the inside concave. 
+        difference() {
+            // Create a sharper ridge in the middle of the scale and on the sides by intersecting two tilted scales
+            intersection() {
+                rotate([0,0,ridgeAngle/2])
+                    scale([w, h, l])
+                        scalePart();
+                rotate([0,0,-ridgeAngle/2])
+                    scale([w, h, l])
+                        scalePart();
+            }
+            
+            // Carve out the inside with a scale, which is slightly tilted to carve evenly from the tip as well
+            translate([0, -h/2, 0])
+                scale([w, h, l])
+                    rotate([-20, 0,0])
+                        scalePart();
+        }
+    }
+    else {
+        // If the scale is not carved, we just leave the inside round as well
+        intersection() {
+            // Same as the basic scale shape above
+            rotate([0,0,ridgeAngle/2])
+                scale([w, h, l])
+                    scalePart();
+            rotate([0,0,-ridgeAngle/2])
+                scale([w, h, l])
+                    scalePart();
+        }
+    }
+
+}
+
+// A simple basic shape used for the scale, consisting of a large sphere at the bottom and a small at the tip, connected by a cone.
+module scalePart() {
+    union() {
+        translate([0,0,0.25])
+            sphere(r=0.5);
+        translate([0,0,0.5])
+            cylinder(r1=0.432, r2 = 0.08, h=0.6);
+        translate([0,0,0.81+0.25])
+            sphere(r=0.09);
+    }
+}
+
+
 
