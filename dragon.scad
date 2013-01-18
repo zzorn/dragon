@@ -1,6 +1,6 @@
 // Openscad, animatronic dragon, work in progress, see http://github.com/zzorn/dragon
 
-$fn = 40;
+$fn = 20;
 
 holeMargin = 1;
 
@@ -63,8 +63,8 @@ module dragon(width = 100, length = 700, wingspan = 500, tubeDiam = 8, tendonDia
     
     // Neck
     neckWidth = width * 0.3;
-    neckLength = length * 0.2;
-    neckSegments = 4;
+    neckLength = length * 0.22;
+    neckSegments = 5;
     translate([0, bodyLength/2 + spacing, 0]) {
         spine(neckWidth*1.1, neckWidth, neckLength, 1.2, 0.8, tubeDiam, tendonDiam, neckSegments, spacing, startSpikeSize=1, startSpikeAngle=28, endSpikeSize=0.9, endSpikeAngle=26);
     }
@@ -78,8 +78,8 @@ module dragon(width = 100, length = 700, wingspan = 500, tubeDiam = 8, tendonDia
     
     // Tail
     tailWidth = width * 0.25;
-    tailLength = length * 0.5;
-    tailSegments = 8;
+    tailLength = length * 0.48;
+    tailSegments = 10;
     translate([0, -tailLength - spacing*tailSegments-bodyLength/2, 0]) {
         spine(tailWidth*1.2, tailWidth, tailLength, 0.6, 1.2, tubeDiam, tendonDiam, tailSegments, spacing, startSpikeSize=0.5, startSpikeAngle=30);
     }
@@ -209,9 +209,9 @@ module carvedSegment(origX,
     spikeRootSize = 0.4;
 
     
-    bottomCutAspect = 1.1;
-    bottomCutRadius = 0.9;
-    bottomCutDist = sizeZ * 1.45;
+    bottomCutAspect = 0.9;
+    bottomCutRadius = 1;
+    bottomCutDist = sizeZ * 1.545;
 
     difference() {
         union() {       
