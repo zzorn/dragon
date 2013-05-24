@@ -1,8 +1,9 @@
 // Openscad, animatronic dragon, work in progress, see http://github.com/zzorn/dragon
 
+use <utils.scad>;
+
 $fn = 20;
 
-Tau = 6.28318530717958647692;
 
 holeMargin = 1;
 
@@ -117,8 +118,6 @@ module spine(width, height, length, startSize, endSize, tubeDiam, tendonDiam, ne
     }
 }
 
-function mix(pos, start, end) = start + pos * (end -start);
-function map(pos, srcStart, srcEnd, start, end) = start + ((pos-srcStart) / (srcEnd-srcStart)) * (end -start);
 
 
 module neckSegment(sizeX, sizeY, length, tubeDiam, tendonDiam, spikeSize = 1, spikeAngle = 40, bendAmount = 0.3, supportSpacing = 0.75) {
