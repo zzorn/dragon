@@ -35,12 +35,23 @@ module wingArm(len = 150, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAn
         rotate([90, 90, 0]) {
             doubleHorn(len*0.75, len*0.25, 30, 45, r * 0.3, r, r * 0.3, aspect1 = 1.4, aspect2 = 1.1, aspect3 = 0.9, smoothness = 30);
         }
+
+        // Channel for capacitive sensing wire, and wing seam
+        translate([r*0.5, 0, 0])
+            rotate([90, 90, 0]) {
+                doubleHorn(len*0.68, len*0.23, 30, 48, r * 0.13, r * 0.17, r * 0.13, aspect1 = 2, aspect2 = 2, aspect3 = 2, smoothness = 10);
+            }
         
         // Hinge slot
         translate([-r*0.3, 0, 0]) {
             translate([0, 0, -hingeH/2]) {
                 roundedAngle(a = hingeAngleMovement, r = hingeOuterD/2+0.25, l = len*0.15, h = hingeH, rot = 90, extraThickness = hingeOuterD);
+                
             }
+
+            // Area for connection wire
+            cube([hingeOuterD + 4, hingeOuterD + 5, hingeH], center=true);
+            //cylinder(h=hingeH, r = hingeOuterD/2 + 3, $fn=30);
 
             // Hingle axle slot
             translate([0, 0, -hingeAxleH/2]) {     
