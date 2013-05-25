@@ -92,6 +92,29 @@ module splitAlongZ0(xOffset = 30, yOffset = 30, cutSize = 1000) {
 }
 
 
+// Fastening knob holes - use pieces of filament to fasten
+module knob(knobH = 8, knobD = 3, hole = true) {
+    glap = 0.6;
+
+    if (hole) {
+        translate([0,0,-knobH/2]) cylinder(h = knobH+glap/2, r = knobD/2+glap/4, $fn=20);
+        //cube([knobD, knobD, knobH], center = true);
+    }
+    else {
+        cylinder(h = knobH - glap/2, r = knobD/2 - glap/4, $fn=20);
+        //cube([knobD - glap, knobH - glap, knobD - glap]);
+    }
+}
+
+module cylinderTorus(h, outerR, innerR, center = false, smoothness = 30) {
+    difference() {
+        cylinder(h = h, r = outerR, center = center, $fn=smoothness);
+        translate([0,0,-1])
+            cylinder(h = h+2, r = innerR, center = center, $fn=smoothness);
+    }
+}
+
+
 //roundedAngle();
 // horn();
 //doubleHorn();

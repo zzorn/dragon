@@ -3,31 +3,97 @@
 use <utils.scad>;
 
 // Outer wings
-rotate([0,0,45]) {
-    splitAlongZ0(-70, 0) {
-        rotate([0,0,7])
-            wingArm(len=230);
+//rotate([0,0,45]) {
+//    splitAlongZ0(-70, 0) {
+//        rotate([0,0,7])
+//            outerWing();
+//    }
+//}
+
+// Wing arms
+rotate([0,0,0]) {
+    splitAlongZ0(70, 0) {
+            wingArm();
     }
 }
 
-//// Fastening knobs - Use pieces of filament instead
-//for (i = [1 : 4])
-//    translate([8, -20 -i * 10, 0]) knob();
 
-module knob(knobD = 3, knobH = 8, hole = false) {
-    glap = 0.6;
+module wingArm(len = 120, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAngleMovement = 120) {
+    r = len / 15;
+    hingeAxleH = 15;
+    hingeAxleMembrane = 0.2;
+    hingeAxleD = (hingeAxleH - hingeH) / 2 - hingeAxleMembrane;
+    hingeWall = 1;
+    
+    farHingeX = -len * 0.15;
+    farHingeY = len * 0.8;
+    
+    difference() {
+        union() {
+            rotate([90, 90, 0]) {
+                doubleHorn(len*0.3, len*0.75, 20, 20, r * 0.2, r*1.4, r * 0.7, aspect1 = 1, aspect2 = 0.8, aspect3 = 0.5, smoothness = 30, maxSegments = 60);
+            }
+            // Hinge disc
+            translate([farHingeX, farHingeY, 0]) 
+                difference() {
+                    cylinderTorus(hingeH-2, hingeOuterD/2 - 1, hingeInnerD/2 + 0.1, center = true, smoothness=40);
+                    translate([0,+hingeOuterD/2-hingeH/6,0])
+                        rotate([0,90,0])
+                        cylinder(h = hingeOuterD, r = hingeH/6, center=true, $fn=30);
+                }
 
-    if (hole) {
-        translate([0,0,-knobH/2]) cylinder(h = knobH+glap/2, r = knobD/2+glap/4, $fn=20);
-        //cube([knobD, knobD, knobH], center = true);
-    }
-    else {
-        cylinder(h = knobH - glap/2, r = knobD/2 - glap/4, $fn=20);
-        //cube([knobD - glap, knobH - glap, knobD - glap]);
+        }
+
+        // Channel for capacitive sensing wire, and wing seam
+        rotate([90, 90, 0]) {
+            // Wire channel
+            translate([0, r*0.8, 0])
+                doubleHorn(len*0.3, len*0.85, 82, 26, 1, 1, 1, aspect1 = 1.2, aspect2 = 2, aspect3 = 1.3, smoothness = 20);
+                
+            // Line channel    
+            translate([0, -r*2.9, -len*0.7]) {
+                rotate([-40,0,0])
+                    horn(len*0.7, 40, 1, 1, aspect1 = 1.5, aspect2 = 2, smoothness = 30, maxSegments = 30);
+            }
+        }
+        
+        // Slot for far hinge
+        translate([farHingeX, farHingeY, 0])
+            cylinder(h=r*2, r = hingeInnerD/2 + 0.1, $fn=30, center=true);
+        
+        
+        // Hinge slot
+        translate([-r*0.3, 0, 0]) {
+            translate([0, 0, -hingeH/2]) {
+                roundedAngle(a = hingeAngleMovement, r = hingeOuterD/2+0.25, l = len/2, h = hingeH, rot = 90, extraThickness = hingeOuterD);
+                
+            }
+
+            // Area for connection wire
+            cube([hingeOuterD + 5, hingeOuterD + 6, hingeH], center=true);
+            //cylinder(h=hingeH, r = hingeOuterD/2 + 3, $fn=30);
+
+            // Hingle axle slots. Leave a thin membrane covering the hinge hole so that printing the part is easier.  
+            translate([0, 0, hingeH/2 + hingeAxleMembrane]) {     
+                cylinder(h=hingeAxleD, r = hingeInnerD/2 + 0.1, $fn=30);
+            }        
+            translate([0, 0, -hingeH/2 - hingeAxleMembrane - hingeAxleD]) {     
+                cylinder(h=hingeAxleD, r = hingeInnerD/2 + 0.1, $fn=30);
+            }        
+        }
+        
+        // Fastening knob holes
+        translate([-len*0.13,   len*0.75,  0]) knob(4);
+        translate([-len*0.08,   len*0.6,  0]) knob(6);
+        translate([-len*0.07,   len*0.45,  0]) knob(6);
+        translate([-len*0.03,   len*0.3,  0]) knob();
+        translate([-len*0.0,   len*0.15,  0]) knob();
+        //translate([-len*0.01,   -len*0.15,  0]) knob();
     }
 }
 
-module wingArm(len = 150, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAngleMovement = 120) {
+
+module outerWing(len = 230, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAngleMovement = 120) {
     r = len / 25;
     hingeAxleH = 15;
     hingeAxleMembrane = 0.2;
@@ -63,9 +129,8 @@ module wingArm(len = 150, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAn
                 cylinder(h=hingeAxleD, r = hingeInnerD/2 + 0.1, $fn=30);
             }        
         }
-
         
-        // Fastening knobs
+        // Fastening knob holes
         translate([-len*0.18,  -len*0.7,  0]) knob(hole=true, knobH=6);
         translate([-len*0.13,  -len*0.6,  0]) knob(hole=true, knobH=7);
         translate([-len*0.09,  -len*0.5,  0]) knob(hole=true);
@@ -73,10 +138,8 @@ module wingArm(len = 150, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAn
         translate([-len*0.032, -len*0.3,  0]) knob(hole=true);
         translate([-len*0.016, -len*0.21, 0]) knob(hole=true);
         translate([-len*0.005, -len*0.12, 0]) knob(hole=true);
-        translate([-len*0.022,  len*0.12, 0]) knob(hole=true, knobH=7);
-                    
+        translate([-len*0.022,  len*0.12, 0]) knob(hole=true, knobH=7);                    
     }
-
 }
 
 
