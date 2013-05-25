@@ -50,11 +50,14 @@ module wingArm(len = 150, hingeInnerD = 3, hingeOuterD = 12, hingeH = 8, hingeAn
 
         
         // Fastening knobs
-        translate([-len*0.18, -len*0.70, 0]) knob(hole=true);
-        translate([-len*0.09, -len*0.5, 0]) knob(hole=true);
-        translate([-len*0.032, -len*0.3, 0]) knob(hole=true);
+        translate([-len*0.18,  -len*0.7,  0]) knob(hole=true);
+        translate([-len*0.13,  -len*0.6,  0]) knob(hole=true);
+        translate([-len*0.09,  -len*0.5,  0]) knob(hole=true);
+        translate([-len*0.055, -len*0.4,  0]) knob(hole=true);
+        translate([-len*0.032, -len*0.3,  0]) knob(hole=true);
+        translate([-len*0.016, -len*0.21, 0]) knob(hole=true);
         translate([-len*0.005, -len*0.12, 0]) knob(hole=true);
-        translate([-len*0.022, len*0.12, 0])    knob(hole=true);
+        translate([-len*0.022,  len*0.12, 0]) knob(hole=true);
                     
     }
 
