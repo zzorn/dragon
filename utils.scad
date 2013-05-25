@@ -8,9 +8,10 @@ function map(pos, srcStart, srcEnd, start, end) = start + ((pos-srcStart) / (src
 function smoothmix(pos, start, end) = start + (0.5-cos(pos*360/2) * 0.5 ) * (end - start);
 function smoothmap(pos, srcStart, srcEnd, start, end) = start + smoothmix( (pos-srcStart) / (srcEnd - srcStart), 0, 1) * (end - start);
 
-module horn(length = 50, angle = 45, r1 = 15, r2 = 5, aspect1 = 1, aspect2 = 1, ballStart = true, ballEnd = true, smoothness = 30) {
+module horn(length = 50, angle = 45, r1 = 15, r2 = 5, aspect1 = 1, aspect2 = 1, ballStart = true, ballEnd = true, smoothness = 30, maxSegments = 30) {
     a = angle * 0.5;
-    segments = clamp(length / 1, 3, 30);
+    minSegments = 4;
+    segments = clamp(length * 1, minSegments, maxSegments);
     segLen = 1.0*length / segments;
     segRot = a / segments;
     segLen = (length / segments) * map(a, 0, 90, 1.75, 2.5);
@@ -40,10 +41,10 @@ module horn(length = 50, angle = 45, r1 = 15, r2 = 5, aspect1 = 1, aspect2 = 1, 
     }
 }
 
-module doubleHorn(l1 = 50, l2 = 30, a1 = 30, a2 = 20, r1 = 5, r2 = 15, r3 = 10, aspect1 = 1, aspect2 = 1, aspect3 = 1, ballStart = true, ballEnd = true, smoothness = 30) {
-    horn(l1, a1, r2, r1, aspect2, aspect1, true, ballStart, smoothness);
+module doubleHorn(l1 = 50, l2 = 30, a1 = 30, a2 = 20, r1 = 5, r2 = 15, r3 = 10, aspect1 = 1, aspect2 = 1, aspect3 = 1, ballStart = true, ballEnd = true, smoothness = 30, , maxSegments = 30) {
+    horn(l1, a1, r2, r1, aspect2, aspect1, true, ballStart, smoothness, maxSegments);
     rotate([0, 180, 0])
-        horn(l2, a2, r2, r3, aspect2, aspect3, false, ballEnd, smoothness);
+        horn(l2, a2, r2, r3, aspect2, aspect3, false, ballEnd, smoothness, maxSegments);
 }
 
 module cutPlane(size = 1000) {
@@ -54,12 +55,22 @@ module cutPlane(size = 1000) {
 module roundedAngle(a = 90, r = 10, l = 40, h = 5, rot = 0, extraThickness = 0) {
     rotate([0,0,rot]) {
         cylinder(h, r = r, $fn=40);
-        rotate([0,0,a/2])
-            translate([-r, 0, 0])
-            cube([r + extraThickness, l, h]);
-        rotate([0,0,-a/2])
-            translate([-extraThickness, 0, 0])
-            cube([r + extraThickness, l, h]);
+        rotate([0,0,a/2]) {
+            translate([-r + h/2, 0, 0]) {
+                cube([r + extraThickness, l, h]);
+                translate([0, 0, h/2])
+                    rotate([-90,0,0])
+                        cylinder(h=l, r = h/2, $fn=40);
+            }
+        }            
+        rotate([0,0,-a/2]) {
+            translate([-extraThickness - h/2, 0, 0]) {
+                cube([r + extraThickness, l, h]);
+                translate([r + extraThickness, 0, h/2])
+                    rotate([-90,0,0])
+                        cylinder(h=l, r = h/2, $fn=40);
+            }
+        }
     }
 }
 
