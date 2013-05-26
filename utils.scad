@@ -114,7 +114,59 @@ module cylinderTorus(h, outerR, innerR, center = false, smoothness = 30) {
     }
 }
 
+// Draws a line from start to start + offset.
+module lineRel(start, offset, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
+    line(start, start + offset, startDiam, endDiam, aspect, roundedStart, roundedEnd, smoothness);
+}
 
+// Draws a line from start to end.
+module line(start, end, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
+
+    x = end[0] - start[0];
+    y = end[1] - start[1];
+    z = end[2] - start[2];
+    
+    len = sqrt(x*x + y*y + z*z);
+
+    yRot = acos(z / (len + 0.000001)); // Add small value to avoid crash if length is zero
+    zRot = atan2(y, x);
+
+    if (len <= 0) {
+        // In case we have zero length line, only render end blob if activated
+        if (roundedEnd || roundedStart) {
+            scale([1,1,aspect]) {
+                sphere(r=max(startDiam/2,endDiam/2), $fn = smoothness);
+            }
+        }
+    }    
+    else {
+        translate(start) {
+            rotate([0, 0, zRot])
+                rotate([0, yRot, 0]) {
+                    // Aspect ratio scaling
+                    scale([aspect,1,1]) { 
+                        // Rounded start
+                        if (roundedStart) {
+                            sphere(r=startDiam/2, $fn = smoothness);
+                        }
+                        
+                        // Line
+                        cylinder(h=len, r1=startDiam/2, r2 = endDiam/2, $fn = smoothness);
+                        
+                        // Rounded end
+                        if (roundedEnd) {
+                            translate([0, 0, len])
+                                sphere(r=endDiam/2, $fn = smoothness);
+                        }
+                    }                
+                }
+        }
+    }
+
+
+}
+
+//line([-20, -20, -30], [30, 20, 20], startDiam = 20, endDiam = 50, aspect=0.5, roundedEnd=false);
 //roundedAngle();
 // horn();
 //doubleHorn();
