@@ -8,6 +8,9 @@ function map(pos, srcStart, srcEnd, start, end) = start + ((pos-srcStart) / (src
 function smoothmix(pos, start, end) = start + (0.5-cos(pos*360/2) * 0.5 ) * (end - start);
 function smoothmap(pos, srcStart, srcEnd, start, end) = start + smoothmix( (pos-srcStart) / (srcEnd - srcStart), 0, 1) * (end - start);
 
+function vectorLength(vec) = sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]) + 0.000001; // Add epsilon to avoid div by zeroes, as they are hard to check for in openscad.
+function vectorNormal(vec) = vec / vectorLength(vec);
+
 module horn(length = 50, angle = 45, r1 = 15, r2 = 5, aspect1 = 1, aspect2 = 1, ballStart = true, ballEnd = true, smoothness = 30, maxSegments = 30) {
     a = angle * 0.5;
     minSegments = 4;
@@ -47,9 +50,9 @@ module doubleHorn(l1 = 50, l2 = 30, a1 = 30, a2 = 20, r1 = 5, r2 = 15, r3 = 10, 
         horn(l2, a2, r2, r3, aspect2, aspect3, false, ballEnd, smoothness, maxSegments);
 }
 
-module cutPlane(size = 1000) {
-    translate([-size/2, -size/2, -size])
-        cube([size, size, size]);
+module cutPlane(size = 500) {
+    translate([-size/2, -size/2, -size/2])
+        cube([size, size, size/2]);
 }
 
 module roundedAngle(a = 90, r = 10, l = 40, h = 5, rot = 0, extraThickness = 0) {
@@ -75,7 +78,7 @@ module roundedAngle(a = 90, r = 10, l = 40, h = 5, rot = 0, extraThickness = 0) 
 }
 
 
-module splitAlongZ0(xOffset = 30, yOffset = 30, cutSize = 1000) {
+module splitAlongZ0(xOffset = 30, yOffset = 30, cutSize = 500, justSplit = false) {
 
     difference() {
         translate([-xOffset/2, -yOffset/2, 0])
@@ -83,28 +86,36 @@ module splitAlongZ0(xOffset = 30, yOffset = 30, cutSize = 1000) {
         cutPlane(cutSize);
     }    
 
-    difference() {
-        translate([xOffset/2, yOffset/2, 0])
-            rotate([0, 180, 0])
-                child(0);
-        cutPlane(cutSize);
-    }       
+    if (!justSplit) {
+        difference() {
+            translate([xOffset/2, yOffset/2, 0])
+                rotate([0, 180, 0])
+                    child(0);
+            cutPlane(cutSize);
+        }       
+    }
 }
 
 
 // Fastening knob holes - use pieces of filament to fasten
-module knob(knobH = 8, knobD = 3, hole = true) {
-    glap = 0.6;
-
-    if (hole) {
-        translate([0,0,-knobH/2]) cylinder(h = knobH+glap/2, r = knobD/2+glap/4, $fn=20);
-        //cube([knobD, knobD, knobH], center = true);
-    }
-    else {
-        cylinder(h = knobH - glap/2, r = knobD/2 - glap/4, $fn=20);
-        //cube([knobD - glap, knobH - glap, knobD - glap]);
+module knob(knobH = 8, knobD = 3, x = 0, y = 0, glap = 0.6) {
+    translate([x, y, 0]) {
+        translate([0,0,-knobH/2]) {
+            cylinder(h = knobH+glap/2, r = knobD/2+glap/4, $fn=20);
+        }
     }
 }
+
+module knobs(coordinates, knobH = 8, knobD = 3, xOffs = 0, yOffs = 0, glap = 0.6) {
+    translate([xOffs, yOffs, 0]) {
+        for (i = [0 : len(coordinates) - 1]) {
+            translate(coordinates[i]) {
+                knob(knobH, knobD, glap);
+            }
+        }
+    }
+}
+
 
 module cylinderTorus(h, outerR, innerR, center = false, smoothness = 30) {
     difference() {
@@ -118,6 +129,46 @@ module cylinderTorus(h, outerR, innerR, center = false, smoothness = 30) {
 module lineRel(start, offset, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
     line(start, start + offset, startDiam, endDiam, aspect, roundedStart, roundedEnd, smoothness);
 }
+
+module multiLine(coordinates, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
+
+    numCoords = len(coordinates);
+
+    for (i = [0 : numCoords - 2]) {
+        if (i == 0 && !roundedStart) {
+            line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, false, false, smoothness);
+        }
+        else {
+            if (i == numCoords - 2 && roundedEnd) {
+                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, true, true, smoothness);
+            }
+            else {
+                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, true, false, smoothness);
+            }
+        }
+    }
+
+}
+
+module wirePath(coordinates, startDiam = 2, endDiam = 2, aspect = 2, knobH = 6, knobDiam = 3, smoothness = 25, debugView = false) {
+    // Wire channel
+    multiLine(coordinates, startDiam, endDiam, aspect, true, true, smoothness);
+    if (debugView)
+        %multiLine(coordinates, startDiam, endDiam, aspect, true, true, smoothness);
+
+    // Knobs that wire slides around
+    for (i = [1 : len(coordinates) - 2]) {
+        translate(coordinates[i]) {
+            // Move knob partially out of the path
+            translate(vectorNormal(vectorNormal(coordinates[i-1] - coordinates[i]) + vectorNormal(coordinates[i+1] - coordinates[i])) * (0.45 * map(i, 0, len(coordinates), startDiam, endDiam) + 0.3*knobDiam )) {
+                knob(knobH, knobD, glap);
+                if (debugView)
+                    %knob(knobH, knobD, glap);
+            }
+        }
+    }
+}
+
 
 // Draws a line from start to end.
 module line(start, end, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
