@@ -1,0 +1,2 @@
+http://www.bareconductive.com/capacitance-sensor
+http://playground.arduino.cc//Main/CapacitiveSensor?from=Main.CapSense
