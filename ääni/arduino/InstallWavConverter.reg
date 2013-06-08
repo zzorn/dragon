@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\auduino]
+@="APC - Convert to Auduino WAV format"
+"Icon"="c:\\auduino\\apcnew.ico"
+"Position"="Top"
+"NoWorkingDirectory"=""
+
+[HKEY_CLASSES_ROOT\*\shell\auduino\command]
+@="cmd.exe /c c:\\auduino\\ffmpeg\\bin\\ffmpeg -i \"%1\" -acodec pcm_s16le -ac 1 -ar 44100 \"%1\"temp.wav && c:\\auduino\\sox\\sox \"%1\"temp.wav --norm=0 -S -e unsigned-integer -b 8 -r 19000 -c 1 \"%1\"-apc.wav && ren \"%1\"-apc.wav ????????.wav && del /f \"%1\"temp.wav" 
+"IsolatedCommand"="cmd.exe /c c:\\auduino\\ffmpeg\\bin\\ffmpeg -i \"%1\" -acodec pcm_s16le -ac 1 -ar 44100 \"%1\"temp.wav && c:\\auduino\\sox\\sox \"%1\"temp.wav --norm=-1 -S -e unsigned-integer -b 8 -r 19000 -c 1 \"%1\"-apc.wav && ren \"%1\"-apc.wav ????????.wav && del /f \"%1\"temp.wav" 
