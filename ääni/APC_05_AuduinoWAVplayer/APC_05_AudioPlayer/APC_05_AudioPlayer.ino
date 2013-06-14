@@ -12,7 +12,7 @@ File entry;
 // ---------------------------------------------------------------------------------
 // set chipSelect to '10' if using the $2 SD card module or '4' if using the  
 // Ethernet shield's microSD card instead.
-const int chipSelect = 4;    
+const int chipSelect = 10;    
 // ---------------------------------------------------------------------------------
 
 const int oldCard = SPI_HALF_SPEED;
