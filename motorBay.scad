@@ -1,3 +1,6 @@
+
+// TODO add screwsupport to motorbayTar and
+
 use<motor.scad>;
 
 motorWidth = 12;
@@ -18,6 +21,7 @@ boardBayHeight = boardHeight;
 screwHoleR = 1.75;
 hexaR = 5.6/2;
 hexaHeight = 3;
+supportSize = screwHoleR*4;
 
 width = 50;
 lenght = 35;
@@ -34,28 +38,34 @@ wireHoleHeight = topTickness +1;
 
 
 
-// code that shows parts (including motors()
+// code that shows all parts), and whit the printable arts transparent
 // bottom
-translate([-lenght/2, -width/2, 0]){
-	%cube([lenght, width, bottomThickness]);
-}
-// top
-translate([-lenght/2, -width/2, height-topTickness]){
-	%cube([lenght, width, topTickness]);
-}
-motorPlace();
-screwHoles();
+motorbayOverview();
 
 
 // modules whit only the printed parts AT RIGHT PLACE
 //topMotorBay();
 //bottomMotorBay();
 
+// printable code
+//motorbayTray();
 
+
+module motorbayOverview(){
+	translate([-lenght/2, -width/2, 0]){
+		%cube([lenght, width, bottomThickness]);
+	}
+	// top
+	translate([-lenght/2, -width/2, height-topTickness]){
+		%cube([lenght, width, topTickness]);
+	}
+	motorPlace();
+	screwHoles();
+	%screwSupportAtPlace();
+}
 
 
 module motorbayTray(){
-// printable code
 	translate([width/2,0, height])rotate([180,0,0]){
 		topMotorBay();
 	}
@@ -84,6 +94,7 @@ module bottomMotorBay(){
       motorPlace();
       screwHoles();		
 	}
+   screwSupportAtPlace();
 }
 
 
@@ -111,6 +122,31 @@ module screwHoles(){
 }
 
 
+
+module screwSupportAtPlace(){
+	translate([lenght/2-supportSize,width/2-supportSize, bottomThickness]){
+  		screwSupport();
+ 	}
+	translate([-lenght/2,width/2-supportSize, bottomThickness]){
+  		screwSupport();
+ 	}
+	translate([lenght/2-supportSize,-width/2, bottomThickness]){
+  		screwSupport();
+ 	}
+	translate([-lenght/2,-width/2, bottomThickness]){
+  		screwSupport();
+ 	}
+}
+
+// sopport between screws
+module screwSupport(){
+   difference(){
+		cube([supportSize,supportSize, height-bottomThickness-topTickness]);
+		translate([supportSize/2, supportSize/2, 0]){
+			screwHole();
+		}		
+	}
+}
 
 
 module hexa(){

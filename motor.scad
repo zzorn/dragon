@@ -10,13 +10,13 @@ module motor(placeForVires = true, wireSpaceLenght = 5){
 //http://i1040.photobucket.com/albums/b403/guokunli/T2Q1irXhxaXXXXXXXX_649914550_conew1.jpg
 
 // width of motor
-width = 12;
+width = 12.2;
 // height of motor
-height = 10;
+height = 10.2;
 // lenght of the motor part
-motorLenght = 15;
+motorLenght = 15.2;
 // lenght of the gear part
-gearLenght = 9;
+gearLenght = 9.2;
 // tickness and radius of the root of the shaft
 shaftRoot = 1;
 shaftRootR = 2;
