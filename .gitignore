@@ -1,4 +1,8 @@
 *.*~
 *.stl
 
+# Ignore temp eagle backups
+*.b#?
+*.s#?
+*.l#?
 
