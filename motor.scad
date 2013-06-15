@@ -3,20 +3,29 @@ rotate([0,-90,0]){
 	motor(false);
 }
 
+//extraMotorSize = extra size when using as hole
+//wireSpaceLenght = lenght of the space for wires behind motor
+//placeForVires = if true there are place for wires... othervise not
+//wallRemower =  parameter to remove thin walls if using as a hole 
+//						set to zero if you want to print the motor
 
-module motor(placeForVires = true, wireSpaceLenght = 5){
+module motor(placeForVires = true, wireSpaceLenght = 5, 
+				extraMotorSize =0.2, wallRemover = 0.1){
 
 // Motor whit these mesurments
 //http://i1040.photobucket.com/albums/b403/guokunli/T2Q1irXhxaXXXXXXXX_649914550_conew1.jpg
 
+
+
+ 
 // width of motor
-width = 12.2;
+width = 12 + extraMotorSize ;
 // height of motor
-height = 10.2;
+height = 10 + extraMotorSize ;
 // lenght of the motor part
-motorLenght = 15.2;
+motorLenght = 15 + extraMotorSize ;
 // lenght of the gear part
-gearLenght = 9.2;
+gearLenght = 9 + extraMotorSize ;
 // tickness and radius of the root of the shaft
 shaftRoot = 1;
 shaftRootR = 2;
@@ -24,6 +33,9 @@ shaftRootR = 2;
 shaftLenght = 10;
 shaftHeight = 2.5;
 shaftWidth = 3;
+
+
+
 
 // $fn value for cylinders
 fn = 40;
@@ -43,11 +55,11 @@ if (placeForVires){
 // motor part
 
 intersection(){
-	rotate([90,0,90]){
-		cylinder(motorLenght,radiusW, radiusW, $fn = fn);
+	rotate([90,0,90])translate([0,0, -wallRemover]){
+		cylinder(motorLenght+2*wallRemover,radiusW, radiusW, $fn = fn);
 	}
-	translate([0, -radiusW, -radiusH]){	
-		cube([motorLenght, width, height]);
+	translate([-wallRemover, -radiusW, -radiusH]){	
+		cube([motorLenght+2*wallRemover, width, height]);
 	}
 }
 

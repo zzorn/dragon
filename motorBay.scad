@@ -22,18 +22,21 @@ screwHoleR = 1.75;
 hexaR = 5.6/2;
 hexaHeight = 3;
 supportSize = screwHoleR*4;
+supportInTop = 1;
+extraSizeinSupportHole = 0.3;
 
-width = 50;
+width = 45;
 lenght = 35;
 bottomThickness = 5;
 topTickness = 5;
-motorSpacing = 10;
+motorSpacing = 5;
 // motorbayHeight
 height = 15;
 
 wireHoleWidth = 12;
-wireHoleLenght = 5;
+wireHoleLenght = 3;
 wireHoleHeight = topTickness +1;
+motorWireSpaceLenght = 4;
 
 
 
@@ -46,6 +49,7 @@ motorbayOverview();
 // modules whit only the printed parts AT RIGHT PLACE
 //topMotorBay();
 //bottomMotorBay();
+
 
 // printable code
 //motorbayTray();
@@ -61,7 +65,7 @@ module motorbayOverview(){
 	}
 	motorPlace();
 	screwHoles();
-	%screwSupportAtPlace();
+	%screwSupportAtPlace(0);
 }
 
 
@@ -82,7 +86,8 @@ module topMotorBay(){
 			cube([lenght, width, topTickness]);
 		}
       motorPlace();
-      screwHoles();		
+      screwHoles();	
+		screwSupportAtPlace(extraSizeinSupportHole);	
 	}
 }
 
@@ -123,41 +128,51 @@ module screwHoles(){
 
 
 
-module screwSupportAtPlace(){
-	translate([lenght/2-supportSize,width/2-supportSize, bottomThickness]){
-  		screwSupport();
+module screwSupportAtPlace(extraSize = 0){
+	translate([lenght/2-supportSize-extraSize/2 ,
+					width/2-supportSize-extraSize/2, 
+					bottomThickness]){
+  		screwSupport(extraSize);
  	}
-	translate([-lenght/2,width/2-supportSize, bottomThickness]){
-  		screwSupport();
+	translate([-lenght/2-extraSize/2,width/2-supportSize-extraSize/2, 
+					bottomThickness]){
+  		screwSupport(extraSize);
  	}
-	translate([lenght/2-supportSize,-width/2, bottomThickness]){
-  		screwSupport();
+	translate([lenght/2-supportSize-extraSize/2,-width/2-extraSize/2, 
+					bottomThickness]){
+  		screwSupport(extraSize);
  	}
-	translate([-lenght/2,-width/2, bottomThickness]){
-  		screwSupport();
+	translate([-lenght/2-extraSize/2, -width/2-extraSize/2, bottomThickness]){
+  		screwSupport(extraSize);
  	}
 }
 
 // sopport between screws
-module screwSupport(){
+module screwSupport(extraSize = 0){
    difference(){
-		cube([supportSize,supportSize, height-bottomThickness-topTickness]);
-		translate([supportSize/2, supportSize/2, 0]){
-			screwHole();
+		cube([supportSize+extraSize,supportSize+extraSize,
+				 height-bottomThickness-topTickness+supportInTop]);
+		translate([(supportSize+extraSize)/2, (supportSize+extraSize)/2, 0]){
+			screwHole(extraSize/2);
 		}		
 	}
 }
 
 
 module hexa(){
-	translate([0,0, -0.2]){
+	wallRemover = 0.05;
+	translate([0,0, -wallRemover]){
   		cylinder(hexaHeight ,hexaR ,hexaR , $fn = 6);
+		// pyramid ontop of hexa
+		translate([0,0, hexaHeight-2*wallRemover]){
+			cylinder(hexaHeight ,hexaR ,0 , $fn = 6);
+		}
 	}
 }
 
-module screwHole(){
+module screwHole(smallerHole = 0){
 	translate([0,0, -1]){
-		cylinder(height+2 ,screwHoleR ,screwHoleR , $fn = 40);
+		cylinder(height+2 ,screwHoleR-smallerHole  ,screwHoleR-smallerHole  , $fn = 40);
 	}
 }
 
@@ -168,13 +183,13 @@ module motorPlace(){
 	translate([((lenght/2)-motorLenght-motorFromFront),
 				motorWidth/2+ motorSpacing/2,
 				(height/2)]){
-		motor();
+		motor(wireSpaceLenght = motorWireSpaceLenght);
 		
 	}
 	translate([((lenght/2)-motorLenght-motorFromFront),
 				-motorWidth/2- motorSpacing/2,
 				(height/2)]){
-		motor();
+		motor(wireSpaceLenght = motorWireSpaceLenght);
 	}
  	translate([((lenght/2)-motorLenght-wireHoleLenght-motorFromFront),
 				motorWidth/2+ motorSpacing/2-motorWidth/2,
