@@ -1,7 +1,10 @@
-rotate([0,-90,0]){
+//rotate([0,-90,0]){
+//
+//	motor(false);
+//}
 
-	motor(false);
-}
+N20MotorHeight = 10;
+N20MotorWidth = 12;
 
 //extraMotorSize = extra size when using as hole
 //wireSpaceLenght = lenght of the space for wires behind motor
@@ -19,9 +22,9 @@ module motor(placeForVires = true, wireSpaceLenght = 5,
 
  
 // width of motor
-width = 12 + extraMotorSize ;
+width = N20MotorWidth + extraMotorSize ;
 // height of motor
-height = 10 + extraMotorSize ;
+height = N20MotorHeight + extraMotorSize ;
 // lenght of the motor part
 motorLenght = 15 + extraMotorSize ;
 // lenght of the gear part

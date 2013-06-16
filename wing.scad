@@ -1,6 +1,7 @@
 
 
 use <utils.scad>;
+include <motor.scad>;
 
 // Outer wings
 //rotate([0,0,45]) {
@@ -18,10 +19,74 @@ use <utils.scad>;
 //}
 
 // Upper arms
-rotate([0,0,0]) {
-    splitAlongZ0(70, 0, justSplit=true) {
-      upperArm();
+//rotate([0,0,0]) {
+//    splitAlongZ0(70, 0, justSplit=true) {
+//      upperArm();
+//    }
+//}
+
+//rotate([0,0,0]) {
+//    splitAlongZ0(70, 0, justSplit=true) {
+//        wingBase();
+//    }
+//}
+
+wingBase();
+
+module wingTab(tabD = 20, tabH = 10, tabLen = 10, holeD = 3, angle = 0, offset = 0, holeSpacing = 0.5) {
+    rotate([0,0,angle]) {
+        translate([-tabLen - tabD/2 - offset, 0, 0]) {
+            difference() {
+                union() {
+                    cylinder(r = tabD/2, h = tabH, center = true, $fn = 30);
+                    translate([0, -tabD/2, -tabH/2]) {
+                        cube([tabD/2 + tabLen, tabD, tabH]);
+                    }
+                }
+                cylinder(r = holeD/2 + holeSpacing, h = tabH + 2, center = true, $fn = 30);
+            }
+        }
     }
+}
+
+module wingBase(len = 100, h = 10, w = 40) {
+
+    axleD = 4;
+    axleTubeD = 10;
+    axleL = 30;
+    baseH = 10;
+    motorH = N20MotorHeight;
+    motorOffs = 40;
+    motorXOffs = -14;
+    motorZOffs = -2;
+
+    // Axle to turn wing up and down about
+    translate([axleTubeD, 0, axleTubeD/2]) {
+        hingeCenter(casingD = axleTubeD);
+        %hingeSupport(casingD = axleTubeD, casingZUp = 10, casingXRight = 5, casingZDown = 10);
+        wingTab(angle = 180, offset = axleTubeD/2);
+    }
+
+    difference() {
+        union() {
+            // Base
+            translate([-w, -len/2, 0]) {
+                cube([w, len, baseH]);
+            }
+            translate([0, 0, baseH]) {
+                //#knob(8, x = 0, y = 0);
+            }
+        }
+
+
+        // Space for motor for turning wing back and forth
+        translate([motorXOffs, -motorOffs, baseH + motorH/2 + motorZOffs]) {
+            rotate([0,0,180])
+                motor();
+        }
+    }
+    
+
 }
 
 

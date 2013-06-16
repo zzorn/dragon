@@ -217,6 +217,49 @@ module line(start, end, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = t
 
 }
 
+
+// Center of a hinge
+module hingeCenter(len = 40, holeD = 4, casingD = 10, lipSize = 10, holeSpacing = 0.5) {
+    rotate([90, 0, 0]) {
+        difference() {
+            union() {
+                translate([-casingD/2 - lipSize, casingD/2, -len/2])
+                    rotate([90,0,0])
+                        cube([casingD/2 + lipSize, len, casingD]);
+                cylinder(r = casingD/2, h = len, center = true, $fn=30);
+                child(0);
+            }
+            cylinder(r = holeD/2 + holeSpacing, h = len + 2, center = true, $fn=30);
+        }
+    }
+}
+
+// Side supports for a hinge
+module hingeSupport(len = 40, holeD = 4, casingD = 10, casingThickness = 10, casingXLeft = 0, casingZUp = 0, casingXRight = 10, casingZDown = 0, spacing = 1, holeSpacing = 0.5) {
+    cubeOffsetX = -casingD/2 - casingXLeft;
+    cubeOffsetZ = -casingD/2 - casingZDown;
+    cubeSizeX = casingD + casingXLeft + casingXRight;
+    cubeSizeZ = casingD + casingZUp + casingZDown;
+
+    for (yPos = [-len/2 - spacing - casingThickness/2, len/2 + spacing + casingThickness/2]) {
+        translate([0,yPos,0]) {
+            difference() {                
+                translate([cubeOffsetX, -casingThickness/2, cubeOffsetZ])
+                    // TODO: Use rounded corners cube
+                    cube([cubeSizeX, casingThickness, cubeSizeZ]);
+                rotate([90, 0, 0])
+                    cylinder(r = holeD/2 + holeSpacing, h = casingThickness + 2, center = true, $fn=30);
+            }
+        }      
+    }
+}
+
+
+
+
+
+// Test area
+
 //line([-20, -20, -30], [30, 20, 20], startDiam = 20, endDiam = 50, aspect=0.5, roundedEnd=false);
 //roundedAngle();
 // horn();
