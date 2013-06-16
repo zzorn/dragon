@@ -1,10 +1,13 @@
 //rotate([0,-90,0]){
 //
-//	motor(false);
+	//motor(false);
 //}
+extraMotorSize =1;
+N20MotorHeight = 10 + extraMotorSize;
+N20MotorWidth = 12 + extraMotorSize;
+N20MotorPartLenght = 15 + extraMotorSize;
+N20GearPartLenght = 9 + extraMotorSize;
 
-N20MotorHeight = 10;
-N20MotorWidth = 12;
 
 //extraMotorSize = extra size when using as hole
 //wireSpaceLenght = lenght of the space for wires behind motor
@@ -13,7 +16,7 @@ N20MotorWidth = 12;
 //						set to zero if you want to print the motor
 
 module motor(placeForVires = true, wireSpaceLenght = 5, 
-				extraMotorSize =0.2, wallRemover = 0.1){
+				 wallRemover = 0.1){
 
 // Motor whit these mesurments
 //http://i1040.photobucket.com/albums/b403/guokunli/T2Q1irXhxaXXXXXXXX_649914550_conew1.jpg
@@ -22,13 +25,13 @@ module motor(placeForVires = true, wireSpaceLenght = 5,
 
  
 // width of motor
-width = N20MotorWidth + extraMotorSize ;
+width = N20MotorWidth;
 // height of motor
-height = N20MotorHeight + extraMotorSize ;
+height = N20MotorHeight;
 // lenght of the motor part
-motorLenght = 15 + extraMotorSize ;
+motorLenght = N20MotorPartLenght;
 // lenght of the gear part
-gearLenght = 9 + extraMotorSize ;
+gearLenght = N20GearPartLenght;
 // tickness and radius of the root of the shaft
 shaftRoot = 1;
 shaftRootR = 2;

@@ -1,32 +1,36 @@
 
 // TODO add screwsupport to motorbayTar and
 
-use<motor.scad>;
+include<motor.scad>;
 
-motorWidth = 12;
-motorHeight = 10;
-motorLenght = 24;
+motorWidth = N20MotorWidth ;
+motorHeight = N20MotorHeight;
+motorLenght = N20MotorPartLenght+ N20GearPartLenght;
 motorFromFront =2;
 
 
-
+// measurments of the motorboard
 boardLenght = 28;
 boardWidth = 28;
 boardHeight = 15;
 
+// lengts of the bay for the board
 boardBayLenght = 30;
 boardBayWidth = 35;
 boardBayHeight = boardHeight;
 
+// screw and support measurments
 screwHoleR = 1.75;
 hexaR = 5.6/2;
 hexaHeight = 3;
 supportSize = screwHoleR*4;
 supportInTop = 1;
-extraSizeinSupportHole = 0.3;
+extraSizeinSupportHole = 1;
 
-width = 45;
-lenght = 35;
+
+// motorbay measurments
+width = 47;
+lenght = 36;
 bottomThickness = 5;
 topTickness = 5;
 motorSpacing = 5;
