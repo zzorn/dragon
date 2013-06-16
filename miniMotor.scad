@@ -6,7 +6,7 @@
 // a tray where the hole made of the motor in 2 parts
 exampleHoleTray();
 //example that shows the motor inside an cube
-//exampleMotorInCube();
+exampleMotorInCube();
 
 
 
@@ -17,17 +17,17 @@ module exampleHoleTray(){
 		translate([1.5,2,1.5]){
 			miniMotor();
 		}
-		translate([-0.5,-0.5,4.8]){
+		translate([-0.5,-0.5,5.1]){
 			cube([40 , 17, 13]);
    	}
 	}
-	translate([0,-4,10])rotate([180,0,0]){
+	translate([0,-4,11])rotate([180,0,0]){
 		difference(){
-			cube([35 , 16, 10]);
+			cube([35 , 16, 11]);
 			translate([1.5,2,1.5]){
 				miniMotor();
 			}
-			translate([-0.5,-0.5,-8.2]){
+			translate([-0.5,-0.5,-7.9]){
 				cube([40 , 17, 13]);
   	 		}
 		}
@@ -58,23 +58,23 @@ module miniMotor(RenderBottomPart = true, showMotorPart = false,
 						placeForWires = true, wireplaceWidth = 3){
 
 
-motorMagnify = 0.2;
+motorMagnify = 0.5;
 
 // wjhitout flap
-motorLenght = 25.7 + motorMagnify;
-motorHeight = 6.6 + motorMagnify; 
-motorWidth = 11.9 + motorMagnify;
+motorLenght = 26 + motorMagnify;
+motorHeight = 6.8 + motorMagnify; 
+motorWidth = 12 + motorMagnify;
 
 // flap parts
-flapThickness = 3.7;
-flapLenght = 3.9 + motorMagnify;
+flapThickness = 3.8;
+flapLenght = 4.2 + motorMagnify;
 
 // measurments for motorPart;
 motorpartLenght = motorLenght - 14.7;
 motorpartWidth = 8 + motorMagnify;
 
 // measurments for the thin plastic area beside the motor
-screwPlaceLenght = 6.8;
+screwPlaceLenght = 6.6;
 screwPlaceThickness = 3.1 + motorMagnify;
 
 // screw hole info
@@ -91,8 +91,8 @@ tabOnTopPlace1 = motorLenght+0.7;
 tabOnTopPlace1S = motorWidth-3.0;
 tabOnTopPlace2 = 9;
 tabOnTopPlace2S = 1.8;
-tabOntopR = 1.2/2;
-tabOnTopH = 1.2;
+tabOntopR = 2/2;
+tabOnTopH = 1.4;
 
 
 // measurments for the taps at the bottom
@@ -100,13 +100,13 @@ tabsAtBottomPlace1 = 14.9;
 tabsAtBottomPlace1S = motorWidth-3;
 tabsAtBottomPlace2 = 20.8;
 tabsAtBottomPlace2S = 3; 
-tabsAtBottomR = 1.6/2;
-tabsAtBottomH = 0.5;
+tabsAtBottomR = 2.6/2;
+tabsAtBottomH = 0.7;
 
 epsilon = 0.05;
 
 // Shaft measurments
-shaftR = 7.8/2;
+shaftR = 10/2;
 shaftPos = 21.2;
 shaftPosS = motorWidth-4.5;
 shaftH = 2.5;
