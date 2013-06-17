@@ -16,14 +16,7 @@ boardHeight = 15;
 
 
 
-// screw and support measurments
-screwHoleR = 1.75;
-hexaR = 5.6/2;
-hexaHeight = 3;
-supportSize = screwHoleR*4;
-supportInTop = 1;
-extraSizeinSupportHole = 1;
-screwFromS = 2*screwHoleR;
+
 
 // lengts of the bay for the board
 boardBayLenght = 30;
@@ -41,11 +34,21 @@ motorSpacing = 5;
 // motorbayHeight
 height = 15;
 
-wireHoleWidth = 13;
+wireHoleWidth = 12;
 wireHoleLenght = 13;
 wireHoleHeight = topTickness +1;
 wireSpringWidth = 2;
 motorWireSpaceLenght = 4;
+
+// screw and support measurments
+screwHoleR = 1.75;
+hexaR = 5.6/2;
+hexaHeight = 3;
+supportSize = screwHoleR*4;
+supportInTop = 1;
+extraSizeinSupportHole = 1;
+screwFromS = 2*screwHoleR;
+screwLenght = height+2;
 
 
 
@@ -178,7 +181,7 @@ module hexa(){
 
 module screwHole(smallerHole = 0){
 	translate([0,0, -1]){
-		cylinder(height+2 ,screwHoleR-smallerHole  ,screwHoleR-smallerHole  , $fn = 40);
+		cylinder(screwLenght  ,screwHoleR-smallerHole  ,screwHoleR-smallerHole  , $fn = 40);
 	}
 }
 
