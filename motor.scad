@@ -2,7 +2,7 @@
 //
 	//motor(false);
 //}
-extraMotorSize =1;
+extraMotorSize =0.3;
 N20MotorHeight = 10 + extraMotorSize;
 N20MotorWidth = 12 + extraMotorSize;
 N20MotorPartLenght = 15 + extraMotorSize;
