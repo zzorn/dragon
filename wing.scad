@@ -33,7 +33,15 @@ include <motor.scad>;
 
 wingBase();
 
-module wingTab(tabD = 20, tabH = 10, tabLen = 10, holeD = 3, angle = 0, offset = 0, holeSpacing = 0.5) {
+
+WingTabDiam = 20;
+WingTabHeight = 10;
+WingTabHoleDiam = 3;
+WingTabHoleDepth = 8;
+WingWireHoleSize = 4;
+
+// Tab that connects one wing to another
+module wingTab(tabD = WingTabDiam, tabH = WingTabHeight, holeD = WingTabHoleDiam, tabLen = 10, angle = 0, offset = 0, holeSpacing = 0.5, wireHoleSize = WingWireHoleSize) {
     rotate([0,0,angle]) {
         translate([-tabLen - tabD/2 - offset, 0, 0]) {
             difference() {
@@ -43,28 +51,116 @@ module wingTab(tabD = 20, tabH = 10, tabLen = 10, holeD = 3, angle = 0, offset =
                         cube([tabD/2 + tabLen, tabD, tabH]);
                     }
                 }
+                
                 cylinder(r = holeD/2 + holeSpacing, h = tabH + 2, center = true, $fn = 30);
+                
             }
+
+        }       
+    }   
+
+    *%wingSocketCutout(tabD, tabH, holeD, angle=angle, offset  = offset + tabLen, holeSpacing = holeSpacing, wireHoleSize = wireHoleSize);
+}
+
+// Cutout to do wherever a wingTab is connected to a wing
+module wingSocketCutout(tabD = WingTabDiam, tabH = WingTabHeight, holeD = WingTabHoleDepth, holeH = 20, cutoutLen = 40, sweepAngle = 120, angle = 0, offset = 0, spacing = 1, holeSpacing = 0.5, speewAngleStep = 20, wireHoleSize = WingWireHoleSize) {
+    rotate([0,0,angle]) {
+        translate([ - offset , 0, 0]) {
+            union() {
+                // Central tab hole
+                cylinder(r = tabD/2 + spacing, h = tabH + spacing*2, center = true, $fn = 30);
+                
+                // Space for wires
+                cylinder(r = tabD/2 + spacing + wireHoleSize, h = wireHoleSize + spacing*2, center = true, $fn = 30);
+                
+                // Cutout for tab movement
+                for (a = [-sweepAngle/2 : speewAngleStep : sweepAngle/2]) {
+                    rotate([0, 0, a]) {
+                        translate([0, -tabD/2-spacing, -tabH/2-spacing]) {
+                            cube([tabD/2 + cutoutLen, tabD + spacing*2, tabH + spacing*2]);
+                        }
+                    }
+                }
+            }
+            
+            // Hole for rotating tab
+            cylinder(r = holeD/2 + holeSpacing, h = tabH + 2*holeD + spacing*2, center = true, $fn = 30);
+
         }
     }
 }
 
-module wingBase(len = 100, h = 10, w = 40) {
+module wingStart(len = 60, sweeperLen = 10, w = 10, h = 10, baseH = 10, spacing = 3, angle = 0, blockDiam = WingTabDiam + 20) {
+
+    holeLen = len - sweeperLen;
+
+    totalH = h*2 + baseH + spacing*2;
+
+    rotate([0,0,angle]) {
+        difference() {
+            translate([0, -w/2, -h -baseH/2 - spacing]) {
+                // Sweeper
+                cube([len, w, totalH]);
+                
+                // Base block
+                translate([0, w/2, 0])
+                    cylinder(h = totalH, r = blockDiam/2, center = false, $fn=30);
+            }
+            
+            // Cutout tab
+            wingSocketCutout(cutoutLen = holeLen-WingTabDiam, tabH = baseH);
+            
+            // Cutout some extra spacing
+            translate([WingTabDiam,-w/2-1,-baseH/2-spacing])
+                cube([holeLen+1-WingTabDiam, w+2, baseH+spacing*2]);
+        }
+
+        // Support
+        translate([len, 0, -totalH/2])        
+            cylinder(r = w/2, h = totalH);
+        translate([holeLen, 0, -totalH/2])        
+            cylinder(r = w/2, h = totalH);
+    }
+}
+
+module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60) {
+
+    motorW = N20MotorWidth;
+    motorH = N20MotorHeight;
+    motorLen = N20MotorLength;
+    motorSpacing = 4;
+    motorFrontSpacing = 1;
+    
+    armW = motorW + 2 * motorSpacing;    
 
     axleD = 4;
-    axleTubeD = 10;
+    axleTubeD = h;
     axleL = 30;
-    baseH = 10;
-    motorH = N20MotorHeight;
-    motorOffs = 40;
+    baseH = h;
+    holeOffset = 5;
+    holeDist = axleTubeD + holeOffset + WingTabDiam/2;
+    sweeperW = 15;
+    sweeperLen = 1/cos(maxSweepAngle/2) * motorLen;
+    sweepRadius = w + holeDist + sweeperW/2;
+    swingLen = 1/cos(maxSweepAngle/2) * sweepRadius + sweeperLen;
+    swingTabSize = 12;
+    len = sweeperW + 2 * (sin(maxSweepAngle/2) * (1/cos(maxSweepAngle/2) * sweepRadius)) + armW*0.75;
+    
+    
+
+    armLen = N20MotorLength + motorSpacing + motorFrontSpacing + N20MotorWireSpaceLen - armW/4;
+
+    motorOffs = len/2 - 10;
     motorXOffs = -14;
     motorZOffs = -2;
+    pulleyLen = 12;
 
     // Axle to turn wing up and down about
     translate([axleTubeD, 0, axleTubeD/2]) {
-        hingeCenter(casingD = axleTubeD);
+        hingeCenter(casingD = axleTubeD) {
+            wingTab(angle = 180, offset = 0, tabLen = holeOffset, tabH = h);
+        }
         %hingeSupport(casingD = axleTubeD, casingZUp = 10, casingXRight = 5, casingZDown = 10);
-        wingTab(angle = 180, offset = axleTubeD/2);
     }
 
     difference() {
@@ -73,19 +169,45 @@ module wingBase(len = 100, h = 10, w = 40) {
             translate([-w, -len/2, 0]) {
                 cube([w, len, baseH]);
             }
+            for (y = [-len/2, len/2]) {
+                translate([-w/2, y, 0]) {
+                    cylinder(r = w/2, h = baseH);
+                }
+            }
+            
+            // Motor hold
+            translate([holeDist, 0, 0]) {
+                rotate([0,0,90+maxSweepAngle/2])                
+                    translate([-armW - sweeperW/2, swingLen - pulleyLen/2 + motorFrontSpacing - armLen, 0]) {
+                       cube([armW, armLen, baseH]);
+                       translate([armW/2, 0, 0])
+                           *cylinder(r = armW/2, h = baseH);
+                    }
+            }
+            
             translate([0, 0, baseH]) {
                 //#knob(8, x = 0, y = 0);
             }
         }
 
-
-        // Space for motor for turning wing back and forth
-        translate([motorXOffs, -motorOffs, baseH + motorH/2 + motorZOffs]) {
-            rotate([0,0,180])
-                motor();
+        // Motor cutout
+        translate([holeDist, 0, 0]) {
+            rotate([0,0,90+maxSweepAngle/2])                
+                translate([-motorW/2 - motorSpacing - sweeperW/2, swingLen - pulleyLen/2, baseH]) {
+                    rotate([0,0,90])
+                        motor(centerAtAxis = true, shaftCutout = true);
+                }
         }
+
+        // For swing arm moving
+        //translate([holeDist, 0, -1]) {
+        //    cylinderTorus(baseH+2, swingLen + swingTabSize/2, swingLen - swingTabSize/2, smoothness = 50);
+        //}
+        
     }
-    
+
+    translate([axleTubeD + holeOffset + WingTabDiam/2,0,baseH/2])
+        %wingStart(angle=180 + maxSweepAngle/2, len = swingLen, sweeperLen = sweeperLen, w = sweeperW, baseH = baseH);    
 
 }
 

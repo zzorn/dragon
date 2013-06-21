@@ -227,7 +227,9 @@ module hingeCenter(len = 40, holeD = 4, casingD = 10, lipSize = 10, holeSpacing 
                     rotate([90,0,0])
                         cube([casingD/2 + lipSize, len, casingD]);
                 cylinder(r = casingD/2, h = len, center = true, $fn=30);
-                child(0);
+                rotate([-90, 0, 0]) {
+                    child(0);
+                }
             }
             cylinder(r = holeD/2 + holeSpacing, h = len + 2, center = true, $fn=30);
         }
