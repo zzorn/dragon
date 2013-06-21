@@ -85,8 +85,8 @@ module botOfTheNano(){
 		cube([botSidePinL, botSidePinW , botSidePinH]);
 	}
 	// generic stuff
-	translate([0,  botSidePinW,botSidePinH-gHeight]){
-		cube([nanoLenght, nanoWidth-2*botSidePinW , gHeight]);
+	translate([0,  botSidePinW -epsilon,botSidePinH-gHeight]){
+		cube([nanoLenght, nanoWidth-2*botSidePinW + 2*epsilon  , gHeight]);
 	}	
 }
 
