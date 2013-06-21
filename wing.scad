@@ -123,7 +123,7 @@ module wingStart(len = 60, sweeperLen = 10, w = 10, h = 10, baseH = 10, spacing 
     }
 }
 
-module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, assembled = true) {
+module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false, testLocation = 0.7) {
 
     motorW = N20MotorWidth;
     motorH = N20MotorHeight;
@@ -155,71 +155,118 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, assembled = t
     motorZOffs = -2;
     pulleyLen = 12;
     pulleySpacing = 1;
+    
+    contractorArmExtraLen = sweeperW;
+    contractorStringDepth = 0.4;
+    stringHoleDiam = 4;
 
-    // Axle to turn wing up and down about
-    translate([axleTubeD, 0, axleTubeD/2]) {
-        hingeCenter(casingD = axleTubeD) {
-            wingTab(angle = 180, offset = 0, tabLen = holeOffset, tabH = h);
-        }
-        %hingeSupport(casingD = axleTubeD, casingZUp = 10, casingXRight = 5, casingZDown = 10);
-    }
-
-    module armPos(lenOffs = 0, wOffs = 0, hOffs = 0) {
+    module armPos(lenOffs = 0, wOffs = 0, hOffs = 0, left = true) {
         translate([holeDist, 0, 0]) {
-            rotate([0,0,90+maxSweepAngle/2])                
-                translate([-sweeperW/2 - armW/2 - wOffs, swingLen - lenOffs, baseH + hOffs]) {
+            rotate([0,0,90+maxSweepAngle/2 * (left ? 1 : -1)])
+                translate([(sweeperW/2 + armW/2) * (left ? -1 : 1) - wOffs, swingLen - lenOffs, baseH + hOffs]) {
                     child(0);
                 }
         }
     }
 
-    difference() {
-        union() {
-            // Base
-            translate([-w, -len/2, 0]) {
-                cube([w, len, baseH]);
-            }
-            for (y = [-len/2, len/2]) {
-                translate([-w/2, y, 0]) {
-                    cylinder(r = w/2, h = baseH);
-                }
+    module basePulley() {
+        pulley(pulleyDiam = 10, pulleyW = 5, pulleyWallH = 5, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+    }
+
+    module baseStructure() {
+        // Axle to turn wing up and down about
+        translate([axleTubeD, 0, axleTubeD/2]) {
+            hingeCenter(casingD = axleTubeD) {
+                wingTab(angle = 180, offset = 0, tabLen = holeOffset, tabH = h);
             }
             
-            // Motor hold
-            armPos(pulleyLen/2 + armLen, armW/2, -baseH) {
-                union() {
-                   cube([armW, armLen, baseH]);
-                   *translate([armW/2, 0, 0])
-                       cylinder(r = armW/2, h = baseH);
+            // Support preview
+            if (!tray) 
+                %hingeSupport(casingD = axleTubeD, casingZUp = 10, casingXRight = 5, casingZDown = 10);
+        }
+
+        difference() {
+            union() {
+                // Base
+                translate([-w, -len/2, 0]) {
+                    cube([w, len, baseH]);
+                }
+                for (y = [-len/2, len/2]) {
+                    translate([-w/2, y, 0]) {
+                        cylinder(r = w/2, h = baseH);
+                    }
+                }
+                
+                // Motor hold
+                armPos(pulleyLen/2 + armLen, armW/2, -baseH) {
+                    union() {
+                       cube([armW, armLen, baseH]);
+                       *translate([armW/2, 0, 0])
+                           cylinder(r = armW/2, h = baseH);
+                    }
+                }
+
+                // Elastic wire fastening place
+                armPos(pulleyLen/2 + armLen , armW/2, -baseH, left = false) {
+                    union() {
+                       cube([armW, armLen + contractorArmExtraLen, baseH]);
+                       *translate([armW/2, armLen + contractorArmExtraLen, 0])
+                           cylinder(r = armW/2, h = baseH);
+                    }
                 }
             }
 
-            translate([0, 0, baseH]) {
-                //#knob(8, x = 0, y = 0);
+            // Motor cutout
+            armPos(pulleyLen/2, 0, 0) 
+                rotate([0,0,90])
+                    motor(centerAtAxis = true, shaftCutout = true);
+
+            // Cutout for elastic wire
+            armPos(pulleyLen/2 + armLen , 0, -baseH*contractorStringDepth, left = false) {                
+                wirePath([
+                [-armW, 0, 0], 
+                [0,0,0], 
+                [0, armLen + contractorArmExtraLen/2, 0], 
+                [-armW, armLen + contractorArmExtraLen/2+stringHoleDiam*1, 0], 
+                [-armW, armLen+ contractorArmExtraLen/2-stringHoleDiam*2, 0], 
+                [0, armLen + contractorArmExtraLen/2-stringHoleDiam, 0] ], stringHoleDiam, stringHoleDiam, aspect = 1, knobH = baseH*contractorStringDepth*2, debugView = false);
             }
+            translate([-w/2,0,baseH*(1-contractorStringDepth)])
+                wirePath([[0, baseLen, 0], [0,0,0], [-w,0,0], [-w,-w,0], [0,0,0]], stringHoleDiam, stringHoleDiam, aspect = 1, knobH = baseH*contractorStringDepth*2, debugView = false);
+
+            // For swing arm moving
+            //translate([holeDist, 0, -1]) {
+            //    cylinderTorus(baseH+2, swingLen + swingTabSize/2, swingLen - swingTabSize/2, smoothness = 50);
+            //}
+            
         }
+    }
 
-        // Motor cutout
-        armPos(pulleyLen/2, 0, 0) 
-            rotate([0,0,90])
-                motor(centerAtAxis = true, shaftCutout = true);
-
-        // For swing arm moving
-        //translate([holeDist, 0, -1]) {
-        //    cylinderTorus(baseH+2, swingLen + swingTabSize/2, swingLen - swingTabSize/2, smoothness = 50);
-        //}
+    // Show preview or print tray, as requested
+    if (tray) {
+        // Tray arrangement for printing
         
+        translate([-40, 0, 0])  basePulley();
+        
+        baseStructure();
+    }
+    else {
+        // Preview of assembly
+
+        // Base
+        baseStructure();
+
+        // Pulley
+        armPos(pulleyLen/2 - pulleySpacing, 0, 0) {
+            rotate([-90, 0, 0])
+                basePulley();
+        }
+        
+        // Wing preview
+        translate([axleTubeD + holeOffset + WingTabDiam/2,0,baseH/2])
+            %wingStart(angle=180 - maxSweepAngle/2 + maxSweepAngle * testLocation, len = swingLen, sweeperLen = sweeperLen, w = sweeperW, baseH = baseH);    
     }
 
-    // Pulley
-    armPos(pulleyLen/2 - pulleySpacing, 0, 0) {
-        rotate([-90, 0, 0])
-            pulley(pulleyDiam = 10, pulleyW = 5, pulleyWallH = 5, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
-    }
-    
-
-    translate([axleTubeD + holeOffset + WingTabDiam/2,0,baseH/2])
-        %wingStart(angle=180 + maxSweepAngle/2, len = swingLen, sweeperLen = sweeperLen, w = sweeperW, baseH = baseH);    
 
 }
 

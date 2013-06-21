@@ -154,7 +154,7 @@ module wirePath(coordinates, startDiam = 2, endDiam = 2, aspect = 2, knobH = 6, 
     // Wire channel
     multiLine(coordinates, startDiam, endDiam, aspect, true, true, smoothness);
     if (debugView)
-        %multiLine(coordinates, startDiam, endDiam, aspect, true, true, smoothness);
+        %#multiLine(coordinates, startDiam, endDiam, aspect, true, true, smoothness);
 
     // Knobs that wire slides around
     for (i = [1 : len(coordinates) - 2]) {
