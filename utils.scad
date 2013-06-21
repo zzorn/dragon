@@ -283,7 +283,7 @@ module pulley(pulleyDiam = 10, pulleyW = 10, pulleyWallH = 10, pulleyWallW = 2, 
         translate([0,0,-1]) {  
             intersection() {
                 cylinder(h = totalW + 2, r = axleDiam / 2 + glap, $fn = smoothness);
-                translate([-axleFlatDepth + glap, 0, totalW/2 + 1])
+                translate([-axleFlatDepth + glap/2, 0, totalW/2 + 1])
                     cube([axleR*2, axleR*2, totalW+2], center = true);
             }
         }

@@ -123,15 +123,19 @@ module wingStart(len = 60, sweeperLen = 10, w = 10, h = 10, baseH = 10, spacing 
     }
 }
 
-module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false, testLocation = 0.7) {
+module wingBase(baseLen = 100, h = 14, w = 15, maxSweepAngle = 60, tray = false, testLocation = 0.7) {
 
     motorW = N20MotorWidth;
     motorH = N20MotorHeight;
     motorLen = N20MotorLength;
-    motorSpacing = 4;
+    motorSpacing = 3;
     motorFrontSpacing = 1;
     
-    armW = motorW + 2 * motorSpacing;    
+    baseW = motorW + 2 * motorSpacing;
+
+    armW = baseW/2;
+    armLen = baseW * 0.5;
+    armLen2 = baseW * 0.6;
 
     axleD = 4;
     axleTubeD = h;
@@ -140,15 +144,12 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false,
     holeOffset = 5;
     holeDist = axleTubeD + holeOffset + WingTabDiam/2;
     sweeperW = 15;
-    sweeperLen = 1/cos(maxSweepAngle/2) * motorLen;
-    sweepRadius = w + holeDist + sweeperW/2;
+    sweeperLen = 0 ; //1/cos(maxSweepAngle/2) * motorLen;
+    sweepRadius = baseW + holeDist + sweeperW/2;
     swingLen = 1/cos(maxSweepAngle/2) * sweepRadius + sweeperLen;
     swingTabSize = 12;
-    len = sweeperW + 2 * (sin(maxSweepAngle/2) * (1/cos(maxSweepAngle/2) * sweepRadius)) + armW*0.75;
-    
-    
+    len = sweeperW + 2 * (sin(maxSweepAngle/2) * (1/cos(maxSweepAngle/2) * sweepRadius)) + baseW*0.9;
 
-    armLen = N20MotorLength + motorSpacing + motorFrontSpacing + N20MotorWireSpaceLen - armW/4;
 
     motorOffs = len/2 - 10;
     motorXOffs = -14;
@@ -160,17 +161,28 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false,
     contractorStringDepth = 0.4;
     stringHoleDiam = 4;
 
-    module armPos(lenOffs = 0, wOffs = 0, hOffs = 0, left = true) {
+    module armPos(lenOffs = 0, wOffs = 0, hOffs = 0, right = false) {
         translate([holeDist, 0, 0]) {
-            rotate([0,0,90+maxSweepAngle/2 * (left ? 1 : -1)])
-                translate([(sweeperW/2 + armW/2) * (left ? -1 : 1) - wOffs, swingLen - lenOffs, baseH + hOffs]) {
+            rotate([0,0,90+maxSweepAngle/2 * (right ? -1 : 1)])
+                translate([(sweeperW/2 + armW/2) * (right ? 1 : -1) - wOffs, swingLen - lenOffs, baseH + hOffs]) {
                     child(0);
                 }
         }
     }
 
+    module motorPos(lenOffs = 0, wOffs = 0, hOffs = 0) {
+        for (n = [0, 1]) {
+            translate([-baseW/2, 0, 0]) {
+                mirror([0, n, 0])
+                    translate([-wOffs, len/2 + lenOffs, baseH/2 + hOffs]) {
+                        child(0);
+                    }
+            }
+        }
+    }
+
     module basePulley() {
-        pulley(pulleyDiam = 10, pulleyW = 5, pulleyWallH = 5, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+        pulley(pulleyDiam = 10, pulleyW = 5, pulleyWallH = 5, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
     }
 
     module baseStructure() {
@@ -188,57 +200,41 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false,
         difference() {
             union() {
                 // Base
-                translate([-w, -len/2, 0]) {
-                    cube([w, len, baseH]);
+                translate([-baseW, -len/2, 0]) {
+                    cube([baseW, len, baseH]);
                 }
-                for (y = [-len/2, len/2]) {
-                    translate([-w/2, y, 0]) {
-                        cylinder(r = w/2, h = baseH);
-                    }
-                }
-                
-                // Motor hold
-                armPos(pulleyLen/2 + armLen, armW/2, -baseH) {
-                    union() {
-                       cube([armW, armLen, baseH]);
-                       *translate([armW/2, 0, 0])
-                           cylinder(r = armW/2, h = baseH);
+                *for (y = [-len/2, len/2]) {
+                    translate([-baseW/2, y, 0]) {
+                        cylinder(r = baseW/2, h = baseH);
                     }
                 }
 
-                // Elastic wire fastening place
-                armPos(pulleyLen/2 + armLen , armW/2, -baseH, left = false) {
-                    union() {
-                       cube([armW, armLen + contractorArmExtraLen, baseH]);
-                       *translate([armW/2, armLen + contractorArmExtraLen, 0])
-                           cylinder(r = armW/2, h = baseH);
+                for (d = [-1, 1]) {
+                    armPos(baseW, armW/2, -baseH, right = d == 1) {
+                        union() {
+                            cube([armW, armLen+baseW, baseH]);
+                            translate([armW/2, armLen+baseW, 0]) {
+                                cylinder(r = armW/2, h = baseH, $fn = 30);
+                                rotate([0,0,-d * (90 - maxSweepAngle/2)]) {
+                                    translate([-armW/2, 0, 0])
+                                        cube([armW, armLen2, baseH]);
+                                    translate([0, armLen2, 0])    
+                                        cylinder(r = armW/2, h = baseH, $fn = 30);
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             // Motor cutout
-            armPos(pulleyLen/2, 0, 0) 
+            motorPos(-motorFrontSpacing, 0, 0) 
                 rotate([0,0,90])
                     motor(centerAtAxis = true, shaftCutout = true);
 
-            // Cutout for elastic wire
-            armPos(pulleyLen/2 + armLen , 0, -baseH*contractorStringDepth, left = false) {                
-                wirePath([
-                [-armW, 0, 0], 
-                [0,0,0], 
-                [0, armLen + contractorArmExtraLen/2, 0], 
-                [-armW, armLen + contractorArmExtraLen/2+stringHoleDiam*1, 0], 
-                [-armW, armLen+ contractorArmExtraLen/2-stringHoleDiam*2, 0], 
-                [0, armLen + contractorArmExtraLen/2-stringHoleDiam, 0] ], stringHoleDiam, stringHoleDiam, aspect = 1, knobH = baseH*contractorStringDepth*2, debugView = false);
-            }
-            translate([-w/2,0,baseH*(1-contractorStringDepth)])
-                wirePath([[0, baseLen, 0], [0,0,0], [-w,0,0], [-w,-w,0], [0,0,0]], stringHoleDiam, stringHoleDiam, aspect = 1, knobH = baseH*contractorStringDepth*2, debugView = false);
+            // Hooks for elastic wire
+            // TODO
 
-            // For swing arm moving
-            //translate([holeDist, 0, -1]) {
-            //    cylinderTorus(baseH+2, swingLen + swingTabSize/2, swingLen - swingTabSize/2, smoothness = 50);
-            //}
-            
         }
     }
 
@@ -257,7 +253,7 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false,
         baseStructure();
 
         // Pulley
-        armPos(pulleyLen/2 - pulleySpacing, 0, 0) {
+        motorPos(pulleySpacing, 0, 0) {
             rotate([-90, 0, 0])
                 basePulley();
         }
@@ -267,6 +263,9 @@ module wingBase(baseLen = 100, h = 12, w = 15, maxSweepAngle = 60, tray = false,
             %wingStart(angle=180 - maxSweepAngle/2 + maxSweepAngle * testLocation, len = swingLen, sweeperLen = sweeperLen, w = sweeperW, baseH = baseH);    
     }
 
+    // TODO: measuring stick, remove
+    translate([-40,100, 0])
+        %#cube([60,10,10]);
 
 }
 
