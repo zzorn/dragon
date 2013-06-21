@@ -9,6 +9,8 @@ N20MotorPartLenght = 15 + extraMotorSize;
 N20GearPartLenght = 9 + extraMotorSize;
 N20MotorLength = N20MotorPartLenght + N20GearPartLenght; 
 N20MotorWireSpaceLen = 5;
+N20MotorShaftDiameter = 3;
+N20MotorShaftFlatDepth = 0.5;
 
 //extraMotorSize = extra size when using as hole
 //wireSpaceLenght = lenght of the space for wires behind motor
@@ -42,8 +44,8 @@ module motor(placeForWires   = true,
     shaftRootR = 2;
     // lenght height and widt of the shaft
     shaftLenght = 10;
-    shaftHeight = 2.5;
-    shaftWidth = 3;
+    shaftHeight = N20MotorShaftDiameter - N20MotorShaftFlatDepth;
+    shaftWidth = N20MotorShaftDiameter;
 
     
 

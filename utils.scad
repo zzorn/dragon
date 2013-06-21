@@ -257,6 +257,54 @@ module hingeSupport(len = 40, holeD = 4, casingD = 10, casingThickness = 10, cas
 }
 
 
+module pulley(pulleyDiam = 10, pulleyW = 10, pulleyWallH = 10, pulleyWallW = 2, pulleySlopeW = 3, axleDiam = 1.5, axleFlatDepth = 0, wireHoleDiam = 1.5, glap = 0.1, smoothness = 40, wireHolesInSides = true) {
+    innerR = pulleyDiam/2;
+    outerR = innerR + pulleyWallH;
+    totalW = 2*pulleyWallH + 2*pulleySlopeW + pulleyW;
+    
+    axleR = axleDiam / 2 + glap;
+
+    difference() {
+        // Pulley body
+        union() {
+            translate([0,0,0])                                      
+                cylinder(h = pulleyWallW, r = outerR, $fn = smoothness);
+            translate([0,0,pulleyWallW])
+                cylinder(h = pulleySlopeW, r1 = outerR, r2 = innerR, $fn = smoothness);
+            translate([0,0,pulleyWallW + pulleySlopeW])
+                cylinder(h = pulleyW, r = innerR, $fn = smoothness);
+            translate([0,0,pulleyWallW + pulleySlopeW + pulleyW])
+                cylinder(h = pulleySlopeW, r1 = innerR, r2 = outerR, $fn = smoothness);
+            translate([0,0,pulleyWallW + pulleySlopeW + pulleyW + pulleySlopeW])
+                cylinder(h = pulleyWallW, r = outerR, $fn = smoothness);
+        }
+        
+        // Axle hole
+        translate([0,0,-1]) {  
+            intersection() {
+                cylinder(h = totalW + 2, r = axleDiam / 2 + glap, $fn = smoothness);
+                translate([-axleFlatDepth + glap, 0, totalW/2 + 1])
+                    cube([axleR*2, axleR*2, totalW+2], center = true);
+            }
+        }
+            
+        // Hole for attaching wire
+        if (wireHoleDiam > 0) {
+            if (wireHolesInSides) {
+                for (a = [-20, 20])
+                    rotate([0,0,a])
+                        translate([pulleyW + wireHoleDiam/2, 0, totalW/2 - 1]) {
+                            cylinder(h = totalW + 2, r = wireHoleDiam/2, $fn = smoothness, center=true);
+                        }
+            }
+            else {
+                translate([axleDiam/2 + wireHoleDiam/2 + pulleyDiam/6,0,pulleyWallW + pulleySlopeW + wireHoleDiam/2])  
+                    rotate([90,0,0])
+                        cylinder(h = outerR + 2, r = wireHoleDiam/2, $fn = smoothness, center=true);
+            }
+        }
+    }
+}
 
 
 
