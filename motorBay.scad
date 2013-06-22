@@ -47,7 +47,7 @@ motorWireSpaceLenght = 4;
 
 // code that shows all parts), and whit the printable arts transparent
 // bottom
-motorbayOverview();
+//motorbayOverview();
 
 
 // modules whit only the printed parts AT RIGHT PLACE
