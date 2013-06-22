@@ -1,6 +1,25 @@
 
 Tau = 6.28318530717958647692;
 
+BoltLengths = [[0, 12], [12, 12], 
+               [12.0001, 16], [16, 16], 
+               [16.0001, 20], [20, 20], 
+               [20.0001, 25], [25, 25], 
+               [25.0001, 30], [30, 30], 
+               [30.0001, 35], [35, 35], 
+               [35.0001, 40], [40, 40], 
+               [40.0001, 45], [45, 45], 
+               [45.0001, 50], [50, 50], 
+               [50.0001, 55], [55, 55], 
+               [55.0001, 60], [60, 60], 
+               [60.0001, 70], [70, 70], 
+               [70.0001, 80], [80, 80], 
+               [80.0001, 100], [100, 100]
+               ];
+MaxBoltLen = 100;
+
+
+
 function clamp(value, minValue, maxValue) = max(minValue, min(maxValue, value));
 function mix(pos, start, end) = start + pos * (end -start);
 function map(pos, srcStart, srcEnd, start, end) = start + ((pos-srcStart) / (srcEnd-srcStart)) * (end - start);
@@ -219,17 +238,18 @@ module line(start, end, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = t
 
 
 // Center of a hinge
-module hingeCenter(len = 40, holeD = 4, casingD = 10, lipSize = 10, holeSpacing = 0.5) {
-    rotate([90, 0, 0]) {
+module hingeCenter(len = 40, holeD = 4, casingD = 10, lipSize = 10, holeSpacing = 0.5, angle = 0) {
+    rotate([90, angle, 0]) {
         difference() {
             union() {
                 translate([-casingD/2 - lipSize, casingD/2, -len/2])
                     rotate([90,0,0])
                         cube([casingD/2 + lipSize, len, casingD]);
                 cylinder(r = casingD/2, h = len, center = true, $fn=30);
-                rotate([-90, 0, 0]) {
-                    child(0);
-                }
+                translate([-casingD/2-lipSize, 0, 0])
+                    rotate([-90, 0, 0]) {
+                        child(0);
+                    }
             }
             cylinder(r = holeD/2 + holeSpacing, h = len + 2, center = true, $fn=30);
         }
@@ -306,7 +326,78 @@ module pulley(pulleyDiam = 10, pulleyW = 10, pulleyWallH = 10, pulleyWallW = 2, 
     }
 }
 
+module bomHederPrint(projectName) {
+    echo (str("Bill of materials for ", projectName));
+    echo ("Assembly Name; Part Type; Part Specs; Part Count");
+}
 
+module bomPrint(assemblyName, partName, partSpecs, count) {
+    echo (str(assemblyName, "; ", partName, "; ", partSpecs, "; ", count));
+}
+
+module bolt(dia = 4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="") {
+
+    epsilon = 0.01;
+    
+    threadedRodExtraMargin = 5;
+    
+    nutHeight = 0.8 * dia;
+    nutDia    = 1.8 * dia;
+
+    // Look up next larger bolt length if none specified
+    finalBoltLen = boltLen == -1 ? (len >= MaxBoltLen ? len : lookup(len, BoltLengths)) : boltLen; 
+    useThreadedRod = len > MaxBoltLen && boltLen == -1;
+    
+    zOffset = centerEnd ? 0 : -len;    
+    
+    // Print selected bolt size
+    if (!useThreadedRod) {
+        bomPrint(assemblyName, "bolt", str("M", dia, " ", finalBoltLen, " mm"), 1);
+        bomPrint(assemblyName, "nut", str("M", dia), 1);
+    }
+    else {
+        // Implement long bolts as a piece of threaded rod with nuts
+        bomPrint(assemblyName, "threaded rod", str("M", dia, " ", finalBoltLen + nutHeight + threadedRodExtraMargin, " mm"), 1);
+        bomPrint(assemblyName, "nut", str("M", dia), 2);
+    }
+
+    // Bolt hole
+    translate([0,0,zOffset])
+        cylinder(r = dia/2 + gap, h = len + epsilon, $fn = smoothness);
+
+    // Nut hole
+    translate([0,0,-nutDepth-epsilon+zOffset])
+        cylinder(r = nutDia/2 + gap, h = nutHeight + nutDepth + epsilon*2, $fn = 6);
+
+    // Preview of nut
+    %union() {
+        if (preview) {            
+            // Bolt head
+            translate([0,0,len+zOffset+epsilon])
+                if (useThreadedRod) {
+                    cylinder(r = nutDia/2, h = nutHeight, $fn = 6);
+                }
+                else {
+                    cylinder(r = 2*dia / 2, h = 0.8 * dia, $fn = smoothness);
+                }
+
+            // Bolt
+            translate([0,0,-(finalBoltLen-len)+zOffset + (useThreadedRod ? - threadedRodExtraMargin/2: 0)])
+                cylinder(r = dia/2, h = finalBoltLen + epsilon*2 + (useThreadedRod ? threadedRodExtraMargin + nutHeight : 0), $fn = smoothness);
+            
+            // Nut
+            translate([0,0,zOffset])
+                cylinder(r = nutDia/2, h = nutHeight, $fn = 6);
+        }
+    }  
+}
+
+
+function timeOscilate(speed = 1, offset = 0) = 0.5 + 0.5 * cos($t*360 * speed +90 + 180 * offset);
+
+
+*for (l = [0 : 2 : 120])
+    translate([l*5, 0,0]) bolt(4, l);
 
 // Test area
 
