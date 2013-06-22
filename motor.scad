@@ -2,6 +2,9 @@
 //
 	//motor(false);
 //}
+
+use <utils.scad>;
+
 extraMotorSize =0.3;
 N20MotorHeight = 10 + extraMotorSize;
 N20MotorWidth = 12 + extraMotorSize;
@@ -116,3 +119,11 @@ module motor(placeForWires   = true,
     }
 
 }
+
+
+module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3) {
+    pulley(pulleyDiam = innerDiam, pulleyW = flatW, pulleyWallH = outerDiam - innerDiam, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+}
+    
+
+

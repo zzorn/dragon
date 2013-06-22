@@ -145,7 +145,7 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
     armW = baseW/2;
     armLen = baseW * 0.5;
     armLen2L = baseW * 0.3;
-    armLen2R = baseW * 0.9;
+    armLen2R = baseW * 0.7;
 
     hingeLength = 5;
 
@@ -197,10 +197,6 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
         }
     }
 
-    module basePulley() {
-        pulley(pulleyDiam = 10, pulleyW = 5, pulleyWallH = 5, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
-    }
-    
     module wingMotorBlock() {
         difference() {
             union() {
@@ -288,7 +284,7 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
                         // Pulley
                         if (!tray) motorPos(pulleySpacing, 0, 0) {
                             rotate([-90, 0, 0])
-                                basePulley();
+                                motorPulley();
                         }
                     }
 
@@ -309,8 +305,8 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
     if (tray) {
         // Tray arrangement for printing
         
-        translate([-40, 20, 0])  basePulley();
-        translate([-40, -20, 0])  basePulley();
+        translate([-40, 20, 0])  motorPulley();
+        translate([-40, -20, 0])  motorPulley();
         
         baseStructure();
     }
@@ -320,14 +316,20 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
         // Base
         for (n = [0, 1]) {
             mirror([n, 0, 0])
-            translate([43.5,0,0])    
+            translate([43.5,0,-baseH/2])    
                 baseStructure();        
         }
     }
 
     // TODO: measuring stick, remove
-    translate([-65,0, -50])
-        %#cube([130,10,10]); // 13 cm wide
+    translate([0,0,-baseH/2]) {
+        translate([-65,0, -40])
+            %#cube([130,10,5]); // 13 cm wide
+        translate([-65,0, 50])
+            %#cube([130,10,5]); // 13 cm wide
+        translate([-5,0, -40])
+            %#cube([10,10,95]); // 9.5 cm high
+    }
 
 }
 
