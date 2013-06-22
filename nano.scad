@@ -61,7 +61,7 @@ wholeHeight   = nanoThickness + botSidePinH  + pinsOnTopHeight;
 // so that the modules arent at same plane
 epsilon = 0.25;
 
-nano();
+
 
 module nano(){
 	// board
