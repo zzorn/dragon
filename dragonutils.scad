@@ -6,6 +6,8 @@ DragonAspect = 0.8;
 
 SpinalCableDia = 8 + 0.2;
 
+FinalDragonSmoothness = 200;
+
 
 module motorCapsule(motorSpacing = 3, frontSpacing = 1, cutout = false) {
     w = N20MotorWidth + motorSpacing *2;
@@ -24,8 +26,8 @@ module motorCapsule(motorSpacing = 3, frontSpacing = 1, cutout = false) {
     }
 }
 
-module dragonCrossSection(w1 = 100, w2 = 100, l = 5, aspect = DragonAspect) {
+module dragonCrossSection(w1 = 100, w2 = 100, l = 5, aspect = DragonAspect, smoothness = 40) {
     scale([1, aspect, 1])
-        cylinder(r1 = w1/2, r2 = w2/2, h = l, $fn=200);
+        cylinder(r1 = w1/2, r2 = w2/2, h = l, $fn=smoothness);
 }
 

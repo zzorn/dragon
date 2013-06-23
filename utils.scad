@@ -370,7 +370,7 @@ module bomPrint(assemblyName, partName, partSpecs, count) {
     echo (str(assemblyName, "; ", partName, "; ", partSpecs, "; ", count));
 }
 
-module bolt(mSize, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="", nylocNut = true) {
+module bolt(mSize = M4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="", nylocNut = true) {
 
     epsilon = 0.01;
     

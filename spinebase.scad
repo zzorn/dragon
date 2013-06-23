@@ -2,10 +2,11 @@ include <utils.scad>
 include <motor.scad>
 include <dragonutils.scad>
 
-spineBase(tray = true);
 
 pulleyDiam = 15;
 pulleyInnerDiam = 8;
+
+spineBase(tray = true);
 
 module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
     wallThickness = 5;
@@ -51,7 +52,7 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
         difference() {
             union() {
                 // Wall
-                dragonCrossSection(w1 = diam, w2 = endDiam, l = len);
+                dragonCrossSection(w1 = diam, w2 = endDiam, l = len, smoothness = tray ? FinalDragonSmoothness : 40);
             }
 
             // DEBUG; remove
