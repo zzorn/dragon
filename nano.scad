@@ -1,20 +1,21 @@
 // nano
 
-// extrasize for printing
+// extrasize for printing some places have 2* extrasize because they need more lenght
 extraSize = 0.3;
+
 
 
 // the board size
 nanoWidth     = 17.8 + extraSize;
-nanoLenght    = 43.3 + extraSize;
+nanoLenght    = 43.3 + 2*extraSize;
 nanoThickness = 1.6 + extraSize;
 
 
 // usb port measurments
 usbHeight      = 4 + extraSize;
 usbWidth       = 7.5 + extraSize;
-usbLenght      = 9.3 + extraSize;
-usbInsideBoard = 6.8 + extraSize/2;
+usbLenght      = 9.3 + 2*extraSize;
+usbInsideBoard = 6.8 + extraSize;
 
 // pins on top measurments
 pinsOnTopHeight = 9 + extraSize;
@@ -29,6 +30,11 @@ pinBaseOnTopW = 2 + extraSize;
 ledsOnTopH       = 1 + extraSize;
 ledsOnTopL       = 3.7 + extraSize;
 ledsOnTopFromEnd = 12.3;
+ledHoleT    = 1;
+led1FromS = 3.6;
+led2FromS = 6.7;
+led3FromS = 9.4;
+led4FromS = 13.5;
 
 // bottomPin measurments
 botSidePinH       = 8.4 + extraSize;
@@ -62,8 +68,8 @@ wholeHeight   = nanoThickness + botSidePinH  + pinsOnTopHeight;
 epsilon = 0.25;
 
 
-
-module nano(){
+// ledlight = make places for nanos les light
+module nano(ledLight = true){
 	// board
 	translate([0, 0,botSidePinH-epsilon]){
 		cube([nanoLenght, nanoWidth, nanoThickness + 2*epsilon]);
@@ -74,6 +80,28 @@ module nano(){
 		onTopOfNano();	
 	}
 	botOfTheNano();
+	if (ledLight == true){
+		ledLightPlace();
+	}
+}
+
+module ledLightPlace(){
+	translate([ledsOnTopFromEnd + ledsOnTopL /2 , led1FromS  ,
+		nanoThickness+ pinsOnTopHeight]){
+		cylinder(25, ledHoleT  , ledHoleT  , $fn = 30);
+	}
+	translate([ledsOnTopFromEnd + ledsOnTopL /2 , led2FromS  ,
+		nanoThickness+ pinsOnTopHeight]){
+		cylinder(25, ledHoleT  , ledHoleT  , $fn = 30);
+	}
+	translate([ledsOnTopFromEnd + ledsOnTopL /2 , led3FromS  ,
+		nanoThickness+ pinsOnTopHeight]){
+		cylinder(25, ledHoleT  , ledHoleT  , $fn = 30);
+	}
+	translate([ledsOnTopFromEnd + ledsOnTopL /2 , led4FromS  ,
+		nanoThickness+ pinsOnTopHeight]){
+		cylinder(25, ledHoleT  , ledHoleT  , $fn = 30);
+	}
 }
 
 module botOfTheNano(){
