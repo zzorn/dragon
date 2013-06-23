@@ -18,6 +18,19 @@ BoltLengths = [[0, 12], [12, 12],
                ];
 MaxBoltLen = 100;
 
+// Metric bolt / nut data.  Contains thread diameter, nut outer diameter.
+M_ThreadDiameter = 0;
+M_NutDiameter = 1;
+M_NutHeight = 2;
+M_NutHeightNyloc = 3;
+M3 = [3, 6.4, 2.4, 4];
+M4 = [4, 8.1, 3.2, 5];
+M5 = [5, 9.2, 4, 5];
+M6 = [6, 11.5, 5, 6];
+M8 = [8, 15, 6.5, 8];
+M10 = [10, 19.6, 8, 10];
+M12 = [12, 22.1, 10, 12];
+
 
 
 function clamp(value, minValue, maxValue) = max(minValue, min(maxValue, value));
@@ -115,6 +128,25 @@ module splitAlongZ0(xOffset = 30, yOffset = 30, cutSize = 500, justSplit = false
     }
 }
 
+module splitAlongZ(splitHeight = 30, xOffset = 30, yOffset = 30, cutSize = 500, justSplit = false) {
+
+    difference() {
+        translate([-xOffset/2, -yOffset/2, -splitHeight])
+            child(0);
+        cutPlane(cutSize);
+    }    
+
+    if (!justSplit) {
+        difference() {
+            translate([xOffset/2, yOffset/2, 0])
+                child(0);
+            translate([0, 0, splitHeight])
+                rotate([0, 180, 0])
+                    cutPlane(cutSize);
+        }       
+    }
+}
+
 
 // Fastening knob holes - use pieces of filament to fasten
 module knob(knobH = 8, knobD = 3, x = 0, y = 0, glap = 0.6) {
@@ -149,20 +181,23 @@ module lineRel(start, offset, startDiam = 5, endDiam = 5, aspect = 1, roundedSta
     line(start, start + offset, startDiam, endDiam, aspect, roundedStart, roundedEnd, smoothness);
 }
 
-module multiLine(coordinates, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30) {
+module multiLine(coordinates, startDiam = 5, endDiam = 5, aspect = 1, roundedStart = true, roundedEnd = true, smoothness = 30, dia = -1) {
+
+    sDia = dia >= 0 ? dia : startDiam;
+    eDia = dia >= 0 ? dia : endDiam;
 
     numCoords = len(coordinates);
 
     for (i = [0 : numCoords - 2]) {
         if (i == 0 && !roundedStart) {
-            line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, false, false, smoothness);
+            line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, sDia, eDia), map(i + 1, 0, numCoords-1, sDia, eDia), aspect, false, false, smoothness);
         }
         else {
             if (i == numCoords - 2 && roundedEnd) {
-                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, true, true, smoothness);
+                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, sDia, eDia), map(i + 1, 0, numCoords-1, sDia, eDia), aspect, true, true, smoothness);
             }
             else {
-                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, startDiam, endDiam), map(i + 1, 0, numCoords-1, startDiam, endDiam), aspect, true, false, smoothness);
+                line(coordinates[i], coordinates[i + 1], map(i, 0, numCoords-1, sDia, eDia), map(i + 1, 0, numCoords-1, sDia, eDia), aspect, true, false, smoothness);
             }
         }
     }
@@ -311,9 +346,9 @@ module pulley(pulleyDiam = 10, pulleyW = 10, pulleyWallH = 10, pulleyWallW = 2, 
         // Hole for attaching wire
         if (wireHoleDiam > 0) {
             if (wireHolesInSides) {
-                for (a = [-20, 20])
+                for (a = [-30, 30])
                     rotate([0,0,a])
-                        translate([pulleyW + wireHoleDiam/2, 0, totalW/2 - 1]) {
+                        translate([innerR + wireHoleDiam/2, 0, totalW/2 - 1]) {
                             cylinder(h = totalW + 2, r = wireHoleDiam/2, $fn = smoothness, center=true);
                         }
             }
@@ -335,14 +370,15 @@ module bomPrint(assemblyName, partName, partSpecs, count) {
     echo (str(assemblyName, "; ", partName, "; ", partSpecs, "; ", count));
 }
 
-module bolt(dia = 4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="") {
+module bolt(mSize, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="", nylocNut = true) {
 
     epsilon = 0.01;
     
     threadedRodExtraMargin = 5;
-    
-    nutHeight = 0.8 * dia;
-    nutDia    = 1.8 * dia;
+
+    dia = mSize[M_ThreadDiameter];
+    nutHeight = mSize[nylocNut ? M_NutHeightNyloc : M_NutHeight];
+    nutDia    = mSize[M_NutDiameter];
 
     // Look up next larger bolt length if none specified
     finalBoltLen = boltLen == -1 ? (len >= MaxBoltLen ? len : lookup(len, BoltLengths)) : boltLen; 
@@ -368,6 +404,11 @@ module bolt(dia = 4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2
     // Nut hole
     translate([0,0,-nutDepth-epsilon+zOffset])
         cylinder(r = nutDia/2 + gap, h = nutHeight + nutDepth + epsilon*2, $fn = 6);
+
+    // Sloping roof for nut hole
+    translate([0,0,nutHeight-epsilon+zOffset])
+        cylinder(r1 = nutDia/2 + gap, r2 = dia/2, h = gap, $fn = 6);
+        
 
     // Preview of nut
     %union() {

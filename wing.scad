@@ -122,7 +122,7 @@ module wingStart(len = 60, sweeperLen = 10, w = 10, h = 8, baseH = 10, spacing =
         // Support
         translate([len, 0, -totalH/2]) {       
             cylinder(r = w/2, h = totalH);
-            bolt(4, totalH, centerEnd = true);
+            bolt(M4, totalH, centerEnd = true);
         }        
         *translate([holeLen, 0, -totalH/2]) 
             cylinder(r = w/2, h = totalH);
@@ -239,11 +239,11 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
                     translate([armW/2, armLen+baseW, 0]) 
                         rotate([0,0,-d * (90 - maxSweepAngle/2)]) {
                             translate([0, d == 1 ? armLen2R : armLen2L, 0])   
-                                bolt(4, baseH, centerEnd = true);
+                                bolt(M4, baseH, centerEnd = true);
                                 
                             // One extra bolt on the right side    
                             if (d == 1) {
-                                bolt(4, baseH, centerEnd = true);
+                                bolt(M4, baseH, centerEnd = true);
                             }    
                         }        
                              
@@ -322,7 +322,7 @@ module wingBase(h = 14, maxSweepAngle = 60, maxTiltAngle = 60, tray = false, tes
     }
 
     // TODO: measuring stick, remove
-    translate([0,0,-baseH/2]) {
+    *translate([0,0,-baseH/2]) {
         translate([-65,0, -40])
             %#cube([130,10,5]); // 13 cm wide
         translate([-65,0, 50])

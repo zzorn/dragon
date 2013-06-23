@@ -121,8 +121,20 @@ module motor(placeForWires   = true,
 }
 
 
-module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3) {
-    pulley(pulleyDiam = innerDiam, pulleyW = flatW, pulleyWallH = outerDiam - innerDiam, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3, cutout = false, cutoutGap = 3, baseCutoutGap = 1) {
+    if (cutout) {
+        translate([0,0,-baseCutoutGap])
+        difference() {
+            cylinder(r = outerDiam/2 + cutoutGap, h = flatW + 10 + cutoutGap + baseCutoutGap, $fn = 40);
+            
+            // Add a small tab inwards if the pulley glides out, to avoid it scraping into the whole wall
+            translate([0,0,flatW + 10 + cutoutGap + baseCutoutGap - cutoutGap*0.3])
+                cylinder(r = 1, h = cutoutGap*0.3+0.01, $fn = 20);
+        }
+    }
+    else {
+        pulley(pulleyDiam = innerDiam, pulleyW = flatW, pulleyWallH = (outerDiam - innerDiam) /2, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+    }
 }
     
 
