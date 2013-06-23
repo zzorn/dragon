@@ -129,7 +129,7 @@ module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3, cutout = false, cu
             
             // Add a small tab inwards if the pulley glides out, to avoid it scraping into the whole wall
             translate([0,0,flatW + 10 + cutoutGap + baseCutoutGap - cutoutGap*0.3])
-                cylinder(r = 1, h = cutoutGap*0.3+0.01, $fn = 20);
+                cylinder(r1 = 1, r2 = 2, h = cutoutGap*0.3+0.01, $fn = 20);
         }
     }
     else {
