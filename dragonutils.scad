@@ -4,7 +4,7 @@ include <motor.scad>
 
 DragonAspect = 0.8;
 
-SpinalCableDia = 8 + 0.2;
+SpinalCableDia = 11.5 + 0.2;
 
 FinalDragonSmoothness = 200;
 

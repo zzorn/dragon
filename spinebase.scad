@@ -1,31 +1,38 @@
 include <utils.scad>
 include <motor.scad>
 include <dragonutils.scad>
+use <motorcontroller.scad>
 
 
 pulleyDiam = 15;
 pulleyInnerDiam = 8;
 
-spineBase(tray = true);
+
+spineBase(tray = false);
 
 module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
+
     wallThickness = 5;
     pulleyLen = 15;
     motorSpacing = 3;
     pulleySpacing = 1;
     len = N20MotorHeight + motorSpacing * 2 + wallThickness * 2;
+
+    spineCutHeight = len * 0.4;
+
     motorLen = N20MotorLength + motorSpacing;
     motorOffs = N20MotorHeight/2 + motorSpacing;
     motorZOffs = diam/2 - max(pulleyDiam/2, N20MotorHeight/2) - motorSpacing - 5;
     mediumH = ((diam + endDiam) / 2) * DragonAspect;
     spacing = 5;
-    chordTubeDia = SpinalCableDia + spacing;
+    chordTubeDia = 12;
     chordTubeZ = chordTubeDia/2 + 3;
     stringTubeDia = 6;    
     stringTubeZ = len - stringTubeDia / 2 - 3;
     motorWireDia = 6;
-    motorWireZ = len/2+1;
+    motorWireZ = spineCutHeight+1;
     spineExitY = DragonAspect * diam/2 - spacing - chordTubeDia/2;
+
     
     stringHoleDistanceX = 80;
     stringHoleDistanceY = 60;
@@ -52,29 +59,29 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
         difference() {
             union() {
                 // Wall
-                dragonCrossSection(w1 = diam, w2 = endDiam, l = len, smoothness = tray ? FinalDragonSmoothness : 40);
+                *dragonCrossSection(w1 = diam, w2 = endDiam, l = len, smoothness = tray ? FinalDragonSmoothness : 40);
             }
 
             // DEBUG; remove
-            *#dragonCrossSection(w1 = diam, w2 = endDiam, l = 1);
+            #dragonCrossSection(w1 = diam, w2 = endDiam, l = 1);
             
             // Cut space out for motors
-            translate([-23, 5, wallThickness + motorOffs]) {
+            #translate([-23, 5, spineCutHeight]) {
                 rotate([0, 0, 90])
                     stringMotor(cutout = true);
             }
 
-            translate([15, -10, wallThickness + motorOffs]) {
+            #translate([15, -10, spineCutHeight]) {
                 rotate([0, 0, 20])
                     stringMotor(cutout = true);
             }
             
             // Hole for spinal chord
-            translate([0,0,len/2])
+            #translate([0,0,len/2])
                 cylinder(r = SpinalCableDia/2, h = len/2+1);
                 
             // Bring wiring to top of backside
-            multiLine([
+            #multiLine([
                 [0,0,chordTubeZ+4], 
                 [0,5,chordTubeZ], 
                 [0, spineExitY - 5, chordTubeZ],
@@ -83,12 +90,12 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
                 ], dia = chordTubeDia);    
 
             // String tubing x axis       
-            multiLine([
+            #%multiLine([
                 [sx1,0,len], 
                 [sx1,0,stringTubeZ+3], 
                 [sx1+1,3,stringTubeZ], 
                 [sx1+5,12,stringTubeZ], 
-                [-23, 12, stringTubeZ-7],
+                [-23, 12, spineCutHeight],
                 [-10, 12, stringTubeZ],
                 [10, 16, stringTubeZ],
                 [25, 16, stringTubeZ-7],
@@ -99,13 +106,13 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
                 ], dia = stringTubeDia);
 
             // String tubing y axis
-            multiLine([
+            #%multiLine([
                 [0, sy1, len], 
                 [0, sy1, stringTubeZ+3], 
                 [3, sy1, stringTubeZ], 
                 [22, -24, stringTubeZ],
                 [25, -20, stringTubeZ],
-                [23, -8, stringTubeZ-7],
+                [23, -8, spineCutHeight],
                 [18, 4, stringTubeZ],
                 [18.5, 8, stringTubeZ],
                 [26, 14, stringTubeZ],
@@ -117,12 +124,17 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
                 ], dia = stringTubeDia);
 
             // Tubing for motor wires
-            multiLine([
+            #%multiLine([
                 [-22, -23, motorWireZ], 
                 [-13, -23, motorWireZ], 
                 [-13, -10, motorWireZ], 
                 [-1, 3, motorWireZ]
                 ], dia = motorWireDia);
+                
+            // Motor board
+            translate([10,20,spineCutHeight])
+                rotate([180,0,-30])
+                    %motorcontroller(useScrews=false, outputWireLen = 0);
                 
             // Bolt holes
             for (pos = [[-35, -12], [37, -9], [14, 23], [-15, 27]])
@@ -142,7 +154,7 @@ module spineBase(diam = 100, endDiam = 90, tray = false, mirrorPiece = false) {
                 motorPulley(outerDiam = pulleyDiam, innerDiam = pulleyInnerDiam, cutout = false);
         
         // Split spine base in two
-        splitAlongZ(len/2, xOffset = 0, yOffset = 80) content();
+        splitAlongZ(spineCutHeight, xOffset = 0, yOffset = 80) content();
     }
 
 

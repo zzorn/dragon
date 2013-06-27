@@ -5,7 +5,7 @@
 
 use <utils.scad>;
 
-extraMotorSize =0.3;
+extraMotorSize =0.4;
 N20MotorHeight = 10 + extraMotorSize;
 N20MotorWidth = 12 + extraMotorSize;
 N20MotorPartLenght = 15 + extraMotorSize;
@@ -121,7 +121,7 @@ module motor(placeForWires   = true,
 }
 
 
-module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3, cutout = false, cutoutGap = 3, baseCutoutGap = 1) {
+module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3, cutout = false, cutoutGap = 1.5, baseCutoutGap = 1) {
     if (cutout) {
         translate([0,0,-baseCutoutGap])
         difference() {
@@ -133,7 +133,7 @@ module motorPulley(innerDiam = 10, outerDiam = 14, flatW = 3, cutout = false, cu
         }
     }
     else {
-        pulley(pulleyDiam = innerDiam, pulleyW = flatW, pulleyWallH = (outerDiam - innerDiam) /2, glap = 0.15, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
+        pulley(pulleyDiam = innerDiam, pulleyW = flatW, pulleyWallH = (outerDiam - innerDiam) /2, glap = 0.25, axleDiam = N20MotorShaftDiameter, axleFlatDepth = N20MotorShaftFlatDepth, wireHoleDiam = 2);
     }
 }
     
