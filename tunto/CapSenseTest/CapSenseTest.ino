@@ -41,7 +41,7 @@ void loop()
     /*Serial.print("\t");
     Serial.println(total3);       // print sensor output 3
     */
-    if (total1 >= 70) {
+    if (total1 >= 70) {        
       digitalWrite(led, LOW);
       
     }  
