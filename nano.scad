@@ -67,22 +67,41 @@ wholeHeight   = nanoThickness + botSidePinH  + pinsOnTopHeight;
 // so that the modules arent at same plane
 epsilon = 0.25;
 
+miniUsbCableW = 12;
+miniUsbCableH = 10;
+
 
 // ledlight = make places for nanos les light
-module nano(ledLight = true){
-	// board
-	translate([0, 0,botSidePinH-epsilon]){
-		cube([nanoLenght, nanoWidth, nanoThickness + 2*epsilon]);
+module nano(ledLight = true, center = false, usbConnectorCutoutLength = 0){
+    module baseNano() {
+	    // board
+	    translate([0, 0,botSidePinH-epsilon]){
+		    cube([nanoLenght, nanoWidth, nanoThickness + 2*epsilon]);
 
-	}
-	translate([0, 0,botSidePinH]){
-		// on top of nano
-		onTopOfNano();	
-	}
-	botOfTheNano();
-	if (ledLight == true){
-		ledLightPlace();
-	}
+	    }
+	    translate([0, 0,botSidePinH]){
+		    // on top of nano
+		    onTopOfNano();	
+	    }
+	    botOfTheNano();
+	    if (ledLight == true){
+		    ledLightPlace();
+	    }
+	    
+	    // Cutout space for usb connector
+	    translate([nanoLenght, -miniUsbCableW/2+nanoWidth/2, -miniUsbCableH/2+wholeHeight/2+usbHeight/2+nanoThickness/2])
+    	    cube([usbConnectorCutoutLength, miniUsbCableW, miniUsbCableH]);
+    }
+    
+    if (center) {
+        translate([-nanoLenght/2, -nanoWidth/2, -wholeHeight/2]) {
+            baseNano();
+        }
+    }
+    else {
+        baseNano();
+    }
+    
 }
 
 module ledLightPlace(){

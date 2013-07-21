@@ -438,6 +438,7 @@ module bolt(mSize = M4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 
 
 
 function timeOscilate(speed = 1, offset = 0) = 0.5 + 0.5 * cos($t*360 * speed +90 + 180 * offset);
+function clamp(v, minV = 0, maxV = 1) = min(max(minV, v), maxV);
 
 
 *for (l = [0 : 2 : 120])
