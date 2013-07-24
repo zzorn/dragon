@@ -7,7 +7,7 @@ include<nano.scad>
 pallero();
 
 // size is diameter of the creature
-module pallero(size = 80, aspect = 0.92) {
+module pallero(size = 100, aspect = 0.92) {
     r = size / 2;
     footD = size*0.3;
     footH = 10;
@@ -18,12 +18,15 @@ module pallero(size = 80, aspect = 0.92) {
     eyeLedDiam = 3;
     eyeLedGap = 0.2;
     
-    eyeSize = size*0.25;
-    eyeLidSizeFactor = 0.95;
+    eyeSize = size*0.23;
+    eyeLidSizeFactor = 0.9;
     eyeDistance = size*0.2;
     
     shellThickness = 2;
     visorThickness = 1;
+    
+    hollowSpaceAngle = 120;
+    hollowerCubeTile = (hollowSpaceAngle - 90) /2;
     
     footZ = -r*aspect +footH*0.8;
 
@@ -47,7 +50,7 @@ module pallero(size = 80, aspect = 0.92) {
             // supports 
             translate([-dia/2, -y*eyeSize*0.05, 0])
                 rotate([0, -90, 0])
-                    cylinder(r=dia/2, h = 30, center=true);
+                    cylinder(r=dia/2, h = size*0.7, center=true);
         }
     }
 
@@ -57,9 +60,15 @@ module pallero(size = 80, aspect = 0.92) {
             difference() {
                 scale([1,1,aspect])    
                     sphere(r);
-                // Hollow out body
-                scale([1,1,aspect])    
-                    sphere(r-shellThickness);
+                // Hollow out part of body
+                intersection() {
+                    for (a=[-hollowerCubeTile, hollowerCubeTile])
+                        rotate([0, 45+a, 0])
+                            translate([0, -size/2, 0])
+                                cube([size/sqrt(2), size, size/sqrt(2)]);
+                    scale([1,1,aspect])    
+                        sphere(r-shellThickness);
+                }
 
                 // Foot    
                 translate([0, 0, footZ-footH]){
@@ -98,12 +107,21 @@ module pallero(size = 80, aspect = 0.92) {
                 nano(center=true, usbConnectorCutoutLength = 20);
             }
         }
-        
+
+        // Axis rotational motor        
         #translate([0, 0, footZ]) {
             rotate([0, 90, 0]) {
                 motor(centerAtAxis=true);
             }
         }
+        
+        // Eye motor
+        #translate([0, 0, 0]) {
+            rotate([0, 0, 90]) {
+                motor(centerAtAxis=true);
+            }
+        }
+
 
         // Eye holes in outer shell
         for (y = [-1, 1]) {
@@ -119,20 +137,38 @@ module pallero(size = 80, aspect = 0.92) {
 
     // Eyelids implemented visor style
     translate([size*(1-eyeLidSizeFactor)/2-1, 0, 0])
-        eyeVisor(size*eyeLidSizeFactor, aspect, visorThickness, state=clamp((timeOscilate(offset=0.5)-0.1)*2));
+        eyeVisor(size*eyeLidSizeFactor, aspect, visorThickness, state=1/*clamp((timeOscilate(offset=0.5)-0.1)*2)*/);
  
 }
 
 
 
 
-module eyeVisor(dia, aspect, thickness = 1, gap = 1, state = 0.5, cutout = false) {
+module eyeVisor(dia, aspect, thickness = 1, gap = 1, state = 0.5, cutout = false, baseDia = 5) {
     a = 30;
     maxOpen = 30;
+    axisDia = baseDia;
+    axisLen = 10;
     
     module visorHalf(up = 1, state, extraGap = 0) {
         rotate([0, up*(a/2+state*maxOpen), 0])
-            hollowSphereSector(dia-thickness-gap-thickness+extraGap, thickness+extraGap*2, a);
+            union() {
+                for (y=[-1, 1]) {
+                    translate([baseDia*2,y*(dia/2-3),0])
+                        rotate([90*y, 0, 0])
+                            cylinder(r=baseDia/2, h = axisLen);
+                }
+                intersection() {
+                    hollowSphereSector(dia-thickness-gap-thickness+extraGap, thickness+extraGap*2, a);
+                    union() {
+                        translate([baseDia*1.9,-dia/2,-dia/2])
+                            cube(dia);
+                        translate([baseDia*2,0,0])
+                            rotate([90, 0, 0])
+                                cylinder(r=baseDia/2, h = dia, center=true);
+                    }
+                }
+            }
     }
     
     if (cutout) {
@@ -182,51 +218,4 @@ module hollowSphereSector(dia, thickness = 1, angle = 90) {
 
 
 
-// Dead end, not suitable for this model, eyelids resemble roll down curtains more than half balls.
-module oldeyelids(eyeD = 20, thickness = 1, gap = 1, axisD = 4, eyeDistance = 10, armLen = 15, armAngle =0) {
 
-    cutAmount = 45;
-    lidSlant = 20;
-
-    module lid(eyeI) {
-        module lidCut(a) {
-            translate([0, -eyeD/2, 0])
-            rotate([0,0,eyeI*lidSlant])
-            translate([0, eyeD/2, 0])
-                rotate([0, 180+90+a, 0]) {
-                    translate([-eyeD, -eyeD, 0])
-                        cube(eyeD*2);
-                }
-        }
-
-        difference(){
-            union() {
-                // Lidball
-                sphere(r=eyeD/2+gap+thickness);
-            }
-            
-            // Cutout for eye
-            sphere(r=eyeD/2+gap);
-            
-            // Cut lid
-            lidCut(-cutAmount/2);
-            lidCut(cutAmount/2);
-        }
-    }
-
-    for (y = [-1, 1]) {
-        translate([0, y*(eyeDistance/2+(eyeD+thickness+gap)/2), 0])
-            lid(y);
-    }
-
-    // Rotation axis
-    translate([0,0,0])
-        rotate([90, 0, 0])
-            cylinder(r=axisD/2, h = eyeDistance, center=true);
-            
-    // Actuation arm
-    rotate([0, armAngle, 0])
-        translate([-armLen/2, 0, 0])    
-            cube([armLen, axisD, axisD], center=true);
-            
-}
