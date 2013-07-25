@@ -372,7 +372,7 @@ module bomPrint(assemblyName, partName, partSpecs, count) {
     echo (str(assemblyName, "; ", partName, "; ", partSpecs, "; ", count));
 }
 
-module bolt(mSize = M4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="", nylocNut = true) {
+module bolt(mSize = M4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 0.2, centerEnd = false, preview = true, smoothness = 30, assemblyName ="", nylocNut = true, boltDepth = 0) {
 
     epsilon = 0.01;
     
@@ -402,6 +402,10 @@ module bolt(mSize = M4, len = 10, boltLen = -1, nut = true, nutDepth = 0, gap = 
     // Bolt hole
     translate([0,0,zOffset])
         cylinder(r = dia/2 + gap, h = len + epsilon, $fn = smoothness);
+
+    // Bolt sink
+    translate([0,0,len+zOffset-epsilon])
+        cylinder(r = 2.5*dia/2 + gap, h = boltDepth+gap, $fn = smoothness);    
 
     // Nut hole
     translate([0,0,-nutDepth-epsilon+zOffset])
