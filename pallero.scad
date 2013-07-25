@@ -5,13 +5,17 @@ include<motor.scad>
 include<nano.scad>
 use<battery.scad>
 use<motorcontroller.scad>
+use<palleroFoot.scad>
 
 splitAlongZ0(xOffset=70, yOffset=70)
     rotate([90, 0, 0])
-        pallero();
+        pallero(preview=true);
+        
+translate([50, -50, 0])        
+    foot();
 
 // size is diameter of the creature
-module pallero(size = 100, aspect = 0.92) {
+module pallero(size = 100, aspect = 0.92, preview = false) {
     r = size / 2;
     footD = size*0.3;
     footH = 10;
@@ -187,9 +191,11 @@ module pallero(size = 100, aspect = 0.92) {
     }
 
 
-    // Eyelids implemented visor style
-    *translate([eyeVisorX, 0, 0])
-        eyeVisor(size*eyeLidSizeFactor, aspect, visorThickness, eyeVisorAxisDia=eyeVisorAxisDia, eyeVisorAxisLen=eyeVisorAxisLen,eyeVisorAxisHoleDia=eyeVisorAxisHoleDia,state=1/*clamp((timeOscilate(offset=0.5)-0.1)*2)*/);
+    if (preview) {
+        translate([0, 0, footZ-footH]){
+            foot();
+        }
+    }
  
 }
 
