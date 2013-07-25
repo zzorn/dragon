@@ -1,4 +1,4 @@
-motor();
+
 module motor(){
 extrasize = 0.3;
 extraInEnd = 2;
